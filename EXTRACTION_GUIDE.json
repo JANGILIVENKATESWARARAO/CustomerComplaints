@@ -1,0 +1,680 @@
+{
+  "metadata": {
+    "sourceFile": "src/app/App.tsx",
+    "totalLines": 7300,
+    "lastUpdated": "2026-08-06",
+    "extractionPriority": "Create screens in order listed for minimal dependency issues"
+  },
+  "screens": [
+    {
+      "name": "DashboardScreen",
+      "purpose": "Main dashboard with KPI cards, trend charts, category breakdown, complaint aging, and recent complaints table",
+      "lines": "3665-4005",
+      "functionSignature": "function DashboardScreen({ complaints, onNavigate })",
+      "stateManagement": {
+        "useState": ["dateRange (DateRange)"],
+        "useMemo": "none",
+        "useCallback": "none"
+      },
+      "dependencies": {
+        "fromTypes": ["Complaint", "DateRange"],
+        "fromData": ["TREND_DATA", "DASHBOARD_DATA"],
+        "fromConstants": ["STATUS_LINE_COLORS"],
+        "uiComponents": ["Card", "MiniSelect", "StatusBadge"],
+        "recharts": [
+          "ResponsiveContainer",
+          "LineChart",
+          "CartesianGrid",
+          "XAxis",
+          "YAxis",
+          "Tooltip",
+          "Line",
+          "BarChart",
+          "Bar",
+          "AreaChart",
+          "Area",
+          "PieChart",
+          "Pie",
+          "Cell"
+        ],
+        "services": ["rechartsService", "iconService"],
+        "sharedComponents": ["ChartTooltip", "ChartLegend"]
+      },
+      "internalComponents": [],
+      "internalFunctions": [
+        {
+          "name": "getXAxisInterval",
+          "purpose": "Determine interval for X-axis labels based on data length",
+          "extractFrom": "utils or inline"
+        }
+      ],
+      "helperFunctions": ["getXAxisInterval (used for chart X-axis intervals)"],
+      "notes": "Uses TREND_DATA and DASHBOARD_DATA keyed by dateRange. Contains complex chart rendering with multiple line series. Includes complaint aging bracket logic.",
+      "internalState": {
+        "dateRange": "tracks selected date range for filtering all metrics",
+        "oldestnew": "filtered and sorted list of oldest new complaints",
+        "recentComplaints": "5 most recent complaints sorted by age"
+      }
+    },
+    {
+      "name": "ComplaintsScreen",
+      "purpose": "Searchable, filterable complaints list with sorting, pagination, and multi-select",
+      "lines": "4006-4443",
+      "functionSignature": "function ComplaintsScreen({ complaints, onNavigate })",
+      "stateManagement": {
+        "useState": [
+          "search (string)",
+          "filterStatuses (string[])",
+          "filterCategories (string[])",
+          "filterAgents (string[])",
+          "sortKey (SortKey)",
+          "sortDir (SortDir)",
+          "selectedIds (Set<string>)",
+          "page (number)",
+          "pageSize (number)"
+        ],
+        "useMemo": [
+          "filtered (list after search and filter)",
+          "derived: paged, allPageSelected"
+        ]
+      },
+      "dependencies": {
+        "fromTypes": ["Complaint", "SortKey", "SortDir"],
+        "fromData": ["ALL_STATUSES", "ALL_CATEGORIES", "ALL_AGENTS"],
+        "uiComponents": [
+          "Card",
+          "MultiSelect",
+          "PaginationControl",
+          "SortIcon",
+          "StatusBadge"
+        ],
+        "services": ["iconService"]
+      },
+      "internalComponents": [],
+      "internalFunctions": [
+        {
+          "name": "toggleSort",
+          "purpose": "Handle sort key and direction toggle"
+        },
+        {
+          "name": "toggleAll",
+          "purpose": "Toggle all complaints on current page"
+        },
+        {
+          "name": "toggleOne",
+          "purpose": "Toggle single complaint selection"
+        }
+      ],
+      "notes": "Complex filtering with useMemo optimization. Supports multi-select (currently disabled in UI). Sortable by ID, Customer, Subject, Category, Dealer, AssignedTo, Status, Age.",
+      "internalState": {
+        "cols": "column definitions with sort keys",
+        "filtered": "memoized filtered/sorted list",
+        "paged": "slice of filtered list for current page"
+      }
+    },
+    {
+      "name": "NewComplaintScreen",
+      "purpose": "Multi-step accordion form to register new customer complaints",
+      "lines": "4444-5471",
+      "functionSignature": "function NewComplaintScreen({ onNavigate })",
+      "stateManagement": {
+        "useState": [
+          "newSteps (Set<number>)",
+          "dealer (string)",
+          "assignedTo (string)",
+          "source (string)",
+          "selectedCustomer (Customer | null)",
+          "firstName, lastName, vehicleReg (strings)",
+          "subject, category, description, priority (strings)",
+          "submitted (boolean)",
+          "errors (Record<string, boolean>)"
+        ],
+        "useCallback": ["toggleStep"],
+        "useEffect": "Multiple effects to auto-unlock steps when sections complete"
+      },
+      "dependencies": {
+        "fromTypes": ["Customer", "Complaint"],
+        "fromData": ["DEALER_AGENTS", "ALL_CATEGORIES", "CUSTOMER_DB"],
+        "uiComponents": ["SearchableSelect", "RequiredLabel", "CharCounter"],
+        "services": ["iconService", "tiptapService (not used)"],
+        "sharedComponents": ["CustomerSearch"]
+      },
+      "internalComponents": [
+        {
+          "name": "AccordionSection",
+          "purpose": "Reusable accordion for each step",
+          "lines": "within NewComplaintScreen",
+          "props": "title, step, newSteps, onToggle, children, complete"
+        },
+        {
+          "name": "VehicleSelect",
+          "purpose": "Searchable vehicle selector with add-new capability",
+          "lines": "within NewComplaintScreen",
+          "props": "vehicles, value, onChange"
+        }
+      ],
+      "internalFunctions": [
+        {
+          "name": "handleSelectCustomer",
+          "purpose": "Pre-populate customer details when customer is selected"
+        },
+        {
+          "name": "handleSubmit",
+          "purpose": "Validate form and show success state"
+        },
+        {
+          "name": "resetForm",
+          "purpose": "Clear all form fields back to initial state"
+        }
+      ],
+      "notes": "Contains two internal components (AccordionSection, VehicleSelect) that should be extracted as local exports. Three-step form with progressive unlock. Shows success screen after submission. Agent list is filtered by dealer.",
+      "internalState": {
+        "sec1Complete, sec2Complete, sec3Complete": "derived completion flags",
+        "availableAgents": "filtered by dealer selection"
+      }
+    },
+    {
+      "name": "ComplaintDetailsScreen",
+      "purpose": "Full complaint view with timeline, customer info, status management, and action panels (note, call, email)",
+      "lines": "5472-5896",
+      "functionSignature": "function ComplaintDetailsScreen({ complaintId, complaints, onBack })",
+      "stateManagement": {
+        "useState": [
+          "status (Status)",
+          "timeline (TimelineEntry[])",
+          "action ('note' | 'email' | 'call' | null)",
+          "showResolve, showClose, showReopen (booleans)",
+          "showEmailThread (string | null)",
+          "callOutcome, callDir (strings)",
+          "descExpanded, replyToEntry (booleans/null)"
+        ]
+      },
+      "dependencies": {
+        "fromTypes": ["Complaint", "Status", "TimelineEntry", "Customer"],
+        "fromData": ["COMPLAINTS", "EMAIL_THREADS"],
+        "fromConstants": ["ALL_STATUSES", "SSO_USER"],
+        "uiComponents": ["Card"],
+        "services": ["iconService"],
+        "sharedComponents": ["StatusBadge"]
+      },
+      "internalComponents": [],
+      "internalFunctions": [
+        {
+          "name": "addEntry",
+          "purpose": "Add new timeline entry with timestamp"
+        },
+        {
+          "name": "handleDropdownStatusChange",
+          "purpose": "Handle status changes with modal prompts for Resolved/Closed"
+        },
+        {
+          "name": "handleSendEmail",
+          "purpose": "Add email entry to timeline"
+        },
+        {
+          "name": "handleResolve",
+          "purpose": "Mark complaint as resolved with summary"
+        },
+        {
+          "name": "handleEditEntry",
+          "purpose": "Update existing timeline entry"
+        },
+        {
+          "name": "handleReopen",
+          "purpose": "Reopen a closed complaint with reason"
+        },
+        {
+          "name": "handleClose",
+          "purpose": "Close complaint with summary and awaiting flag"
+        }
+      ],
+      "relatedComponents": [
+        {
+          "name": "Timeline utilities",
+          "lines": "5472-5471 (before ComplaintDetailsScreen)",
+          "components": [
+            "TimelineSegment (type)",
+            "buildSegments (function)",
+            "TimelineEntry_ (component)",
+            "TimelineList (component)",
+            "useRichEditor (hook)",
+            "NotePanel (component)",
+            "CallPanel (component)",
+            "ReopenModal (component)"
+          ]
+        },
+        {
+          "name": "Modal components",
+          "components": [
+            "ResolveModal (lines 3202-3260)",
+            "CloseModal (lines 3261-3378)",
+            "ReopenModal (part of timeline section)",
+            "EmailThreadModal (lines 3110-3201)"
+          ]
+        }
+      ],
+      "notes": "Large component managing complaint lifecycle. Includes inline modal rendering for Resolve, Close, Reopen. Uses TimelineList component for rendering activity feed. Supports rich text editing and email composition.",
+      "internalState": {
+        "base": "complaint found by ID or first complaint",
+        "isClosed, isResolved": "derived from status"
+      }
+    },
+    {
+      "name": "ReportsScreen",
+      "purpose": "Analytics dashboard with KPI cards, trend charts (area), category distribution (pie), dealer performance, and agent performance table",
+      "lines": "5897-6614",
+      "functionSignature": "function ReportsScreen()",
+      "stateManagement": {
+        "useState": [
+          "dateRange (DateRange)",
+          "agentSortKey (AgentSortKey)",
+          "agentSortDir (SortDir)",
+          "agentPage (number)",
+          "agentPageSize (number)"
+        ],
+        "useMemo": ["sortedAgents (sorted list)", "derived: pagedAgents"],
+        "useEffect": "Reset agent page on date range change"
+      },
+      "dependencies": {
+        "fromTypes": ["DateRange", "AgentSortKey", "SortDir"],
+        "fromData": ["REPORTS_DATA", "COMPLAINTS", "PIE_COLORS"],
+        "uiComponents": ["Card", "MiniSelect", "PaginationControl", "SortIcon"],
+        "recharts": [
+          "ResponsiveContainer",
+          "AreaChart",
+          "Area",
+          "CartesianGrid",
+          "XAxis",
+          "YAxis",
+          "Tooltip",
+          "PieChart",
+          "Pie",
+          "Cell",
+          "BarChart",
+          "Bar",
+          "defs",
+          "linearGradient",
+          "stop"
+        ],
+        "services": ["iconService", "rechartsService"],
+        "sharedComponents": ["ChartTooltip", "ChartLegend"]
+      },
+      "internalComponents": [],
+      "internalFunctions": [
+        {
+          "name": "toggleAgentSort",
+          "purpose": "Handle sorting for agent table"
+        },
+        {
+          "name": "exportCSV",
+          "purpose": "Generate and download CSV of complaints"
+        }
+      ],
+      "notes": "Uses REPORTS_DATA indexed by date range. Includes complex custom Recharts tooltip for stacked bar chart. Contains gradient definitions for area chart. Implements agent performance table with SLA indicators.",
+      "internalState": {
+        "period": "REPORTS_DATA[dateRange]",
+        "kpis": "array of KPI card definitions",
+        "agentCols": "column definitions for agent table"
+      }
+    },
+    {
+      "name": "SettingsScreen",
+      "purpose": "Admin settings for managing categories, statuses, users, and dealers with role-based access control",
+      "lines": "6615-7027",
+      "functionSignature": "function SettingsScreen()",
+      "stateManagement": {
+        "useState": [
+          "tab ('categories' | 'statuses' | 'users' | 'dealers')",
+          "categories (CategoryItem[])",
+          "statuses (StatusItem[])",
+          "catPage, usrPage, dlrPage (numbers)",
+          "catPageSize, usrPageSize, dlrPageSize (numbers)"
+        ]
+      },
+      "dependencies": {
+        "fromTypes": ["Status", "UserRole"],
+        "fromConstants": ["ROLE_PERMISSIONS", "SSO_USER"],
+        "fromData": [
+          "INITIAL_CATEGORIES",
+          "INITIAL_STATUS_ITEMS",
+          "USERS_LIST",
+          "DEALERS_LIST"
+        ],
+        "uiComponents": [
+          "Card",
+          "PaginationControl",
+          "ToggleSwitch",
+          "StatusBadge"
+        ],
+        "services": ["iconService"]
+      },
+      "internalComponents": [],
+      "internalFunctions": [],
+      "localData": [
+        {
+          "name": "INITIAL_CATEGORIES",
+          "structure": "CategoryItem[]",
+          "fields": ["name", "count", "active"]
+        },
+        {
+          "name": "INITIAL_STATUS_ITEMS",
+          "structure": "StatusItem[]",
+          "fields": ["name", "active"]
+        },
+        {
+          "name": "USERS_LIST",
+          "structure": "User[]",
+          "fields": ["name", "email", "role", "dealer", "active"]
+        },
+        {
+          "name": "DEALERS_LIST",
+          "structure": "Dealer[]",
+          "fields": ["name", "code", "region", "active"]
+        }
+      ],
+      "notes": "Includes permission checking - shows access denied if user lacks canViewSettings permission. Four tabs with pagination for categories, users, and dealers. Statuses tab has no pagination. Local state for initial data arrays.",
+      "internalState": {
+        "perm": "ROLE_PERMISSIONS[SSO_USER.role]",
+        "pagedCat, pagedUsr, pagedDlr": "paginated slices"
+      }
+    },
+    {
+      "name": "TopBar",
+      "purpose": "Header component with title, subtitle, dark mode toggle, and notification bell with dropdown panel",
+      "currentLocation": "src/app/modules/layout/TopBar.tsx (exists - needs extraction of NotificationPanel)",
+      "lines": "3599-3664",
+      "functionSignature": "function TopBar({ title, subtitle, notifications, onNavigate, onMarkRead, darkMode, onToggleDark })",
+      "stateManagement": {
+        "useState": ["showPanel (boolean)"]
+      },
+      "dependencies": {
+        "fromTypes": ["Notification", "Screen"],
+        "uiComponents": ["NotificationPanel"],
+        "services": ["iconService"]
+      },
+      "internalComponents": [
+        {
+          "name": "NotificationPanel",
+          "purpose": "Dropdown showing unread and read notifications",
+          "lines": "3521-3598",
+          "note": "Currently nested, should be extracted and imported"
+        }
+      ],
+      "notes": "Existing file at src/app/modules/layout/TopBar.tsx. Contains NotificationPanel component that should be extracted to NotificationPanel.tsx or kept as internal export.",
+      "extractionNotes": "Update imports and move NotificationPanel if extracting separately"
+    },
+    {
+      "name": "Sidebar",
+      "purpose": "Collapsible navigation sidebar with menu items and role-based access",
+      "currentLocation": "src/app/modules/layout/Sidebar.tsx (exists - may need small updates)",
+      "lines": "3379-3598",
+      "functionSignature": "function Sidebar({ screen, collapsed, onCollapse, onNavigate })",
+      "dependencies": {
+        "fromTypes": ["Screen"],
+        "fromConstants": ["ROLE_PERMISSIONS", "SSO_USER", "NAV_ITEMS"],
+        "services": ["iconService"]
+      },
+      "notes": "Existing file. Uses NAV_ITEMS constant and ROLE_PERMISSIONS for access control. Collapsible state managed by parent.",
+      "extractionNotes": "Verify imports of ROLE_PERMISSIONS, SSO_USER, and NAV_ITEMS from constants"
+    }
+  ],
+  "helperComponents": [
+    {
+      "name": "StatusBadge",
+      "purpose": "Display status with styled badge",
+      "lines": "1884-1895",
+      "dependencies": ["STATUS_STYLES"],
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "Card",
+      "purpose": "Basic card wrapper with border and styling",
+      "lines": "1896-1908",
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "ChartLegend",
+      "purpose": "Legend component for charts",
+      "lines": "1909-1924",
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "ChartTooltip",
+      "purpose": "Custom Recharts tooltip renderer",
+      "lines": "1925-2026",
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "RequiredLabel",
+      "purpose": "Form label with red asterisk",
+      "lines": "2027-2040",
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "CharCounter",
+      "purpose": "Character counter with color coding",
+      "lines": "2041-2056",
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "CustomerSearch",
+      "purpose": "Dual-mode customer search with new customer form",
+      "lines": "2057-2485",
+      "complexity": "High - two search modes, new customer creation",
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "RichEditor",
+      "purpose": "Tiptap-based rich text editor with toolbar",
+      "lines": "2486-2939",
+      "complexity": "High - extensive toolbar with many features",
+      "dependencies": ["FONT_SIZES", "TEXT_COLORS", "BG_COLORS"],
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "RichEmailEditor",
+      "purpose": "Email composer with rich text and attachments",
+      "lines": "2940-3109",
+      "dependencies": ["RichEditor"],
+      "extractTo": "components/shared"
+    },
+    {
+      "name": "EmailThreadModal",
+      "purpose": "Modal showing email thread for complaint",
+      "lines": "3110-3201",
+      "extractTo": "modules/complaints/Modals"
+    },
+    {
+      "name": "ResolveModal",
+      "purpose": "Modal for resolving complaint with summary",
+      "lines": "3202-3260",
+      "extractTo": "modules/complaints/Modals"
+    },
+    {
+      "name": "CloseModal",
+      "purpose": "Modal for closing complaint with summary and awaiting flag",
+      "lines": "3261-3378",
+      "extractTo": "modules/complaints/Modals"
+    },
+    {
+      "name": "ReopenModal",
+      "purpose": "Modal for reopening closed complaint",
+      "lines": "within ComplaintDetailsScreen area",
+      "extractTo": "modules/complaints/Modals"
+    },
+    {
+      "name": "useRichEditor",
+      "purpose": "Hook for initializing Tiptap editor with config",
+      "extractTo": "modules/complaints/helpers"
+    },
+    {
+      "name": "NotePanel",
+      "purpose": "Panel for adding internal notes with rich text",
+      "extractTo": "modules/complaints/helpers"
+    },
+    {
+      "name": "CallPanel",
+      "purpose": "Panel for recording call with outcome selector",
+      "extractTo": "modules/complaints/helpers"
+    },
+    {
+      "name": "TimelineList",
+      "purpose": "Main timeline renderer with entry grouping",
+      "extractTo": "modules/complaints/helpers"
+    },
+    {
+      "name": "TimelineEntry_",
+      "purpose": "Individual timeline entry renderer with edit mode",
+      "extractTo": "modules/complaints/helpers"
+    },
+    {
+      "name": "buildSegments",
+      "purpose": "Group timeline entries into display segments",
+      "extractTo": "modules/complaints/helpers"
+    }
+  ],
+  "constants": [
+    {
+      "name": "STATUS_LINE_COLORS",
+      "type": "Record<string, string>",
+      "lines": "729-737",
+      "extractTo": "constants or utils"
+    },
+    {
+      "name": "PIE_COLORS",
+      "type": "string[]",
+      "lines": "738-745",
+      "extractTo": "constants or utils"
+    },
+    {
+      "name": "DASHBOARD_DATA",
+      "type": "Record<DateRange, DashboardPeriod>",
+      "lines": "746-1779",
+      "extractTo": "data"
+    },
+    {
+      "name": "REPORTS_DATA",
+      "type": "Record<DateRange, ReportsPeriod>",
+      "lines": "within constants section",
+      "extractTo": "data"
+    },
+    {
+      "name": "TREND_DATA",
+      "type": "Record<DateRange, PointArray>",
+      "lines": "702-728",
+      "extractTo": "data"
+    },
+    {
+      "name": "STATUS_STYLES",
+      "type": "Record<Status, string>",
+      "lines": "1791-1799",
+      "extractTo": "constants or utils"
+    },
+    {
+      "name": "TIMELINE_CFG",
+      "type": "Record<string, IconConfig>",
+      "lines": "1800-1882",
+      "extractTo": "constants or utils"
+    },
+    {
+      "name": "ALL_STATUSES, ALL_CATEGORIES, ALL_AGENTS",
+      "type": "arrays",
+      "extractTo": "constants or data"
+    },
+    {
+      "name": "FONT_SIZES, TEXT_COLORS, BG_COLORS",
+      "type": "string[][]",
+      "extractTo": "constants"
+    },
+    {
+      "name": "SCREEN_META",
+      "type": "Record<Screen, {title, subtitle}>",
+      "extractTo": "constants"
+    }
+  ],
+  "utilityFunctions": [
+    {
+      "name": "getXAxisInterval",
+      "purpose": "Calculate Recharts X-axis interval based on data length",
+      "lines": "1780-1785",
+      "extractTo": "utils"
+    },
+    {
+      "name": "nowStamp",
+      "purpose": "Get current timestamp in 'DD Mon, HH:MM' format",
+      "lines": "1786-1790",
+      "extractTo": "utils"
+    }
+  ],
+  "extractionStrategy": {
+    "phase1": [
+      "Extract all constants to constants.ts and utils.ts",
+      "Extract all shared components to components/shared.tsx",
+      "Update TopBar and Sidebar with new imports"
+    ],
+    "phase2": [
+      "Extract DashboardScreen with dependencies",
+      "Extract ComplaintsScreen with dependencies",
+      "Extract ReportsScreen with dependencies"
+    ],
+    "phase3": [
+      "Extract NewComplaintScreen with internal components (AccordionSection, VehicleSelect)",
+      "Create modules/complaints/Modals.tsx for all modals",
+      "Create modules/complaints/helpers.tsx for timeline utilities"
+    ],
+    "phase4": [
+      "Extract ComplaintDetailsScreen",
+      "Extract SettingsScreen with local initial data",
+      "Update App.tsx to import all modules and render screens"
+    ],
+    "phase5": [
+      "Update all imports across extracted files",
+      "Test each screen independently",
+      "Verify all data flows and props"
+    ]
+  },
+  "criticalDependencies": {
+    "DashboardScreen": [
+      "TREND_DATA (critical - entire chart data)",
+      "DASHBOARD_DATA (critical - KPIs and aging data)",
+      "STATUS_LINE_COLORS (critical - chart colors)"
+    ],
+    "ComplaintsScreen": [
+      "ALL_STATUSES, ALL_CATEGORIES, ALL_AGENTS (needed for filter options)"
+    ],
+    "NewComplaintScreen": [
+      "DEALER_AGENTS (needed for agent filtering)",
+      "CUSTOMER_DB (modified on new customer creation)",
+      "CustomerSearch component"
+    ],
+    "ComplaintDetailsScreen": [
+      "Timeline helpers (buildSegments, TimelineEntry_, TimelineList)",
+      "All modal components (ResolveModal, CloseModal, ReopenModal, EmailThreadModal)",
+      "useRichEditor hook",
+      "NotePanel, CallPanel components",
+      "EMAIL_THREADS (for email thread modal)"
+    ],
+    "ReportsScreen": [
+      "REPORTS_DATA (entire data for all metrics)",
+      "PIE_COLORS (chart colors)",
+      "ChartTooltip (custom Recharts component)"
+    ],
+    "SettingsScreen": [
+      "INITIAL_CATEGORIES, INITIAL_STATUS_ITEMS, USERS_LIST, DEALERS_LIST (local data)",
+      "ROLE_PERMISSIONS for access control"
+    ]
+  },
+  "notes": [
+    "Line numbers are based on current App.tsx structure (7300+ lines)",
+    "Some ranges may shift slightly during extraction - use function signatures as anchors",
+    "AccordionSection and VehicleSelect are internal to NewComplaintScreen - can remain as local exports or be extracted separately",
+    "Timeline-related components (buildSegments, TimelineEntry_, TimelineList, useRichEditor, NotePanel, CallPanel) should be extracted together",
+    "Modals (ResolveModal, CloseModal, ReopenModal, EmailThreadModal) should be extracted together",
+    "CustomerSearch is heavily used by NewComplaintScreen - extract to shared components",
+    "RichEditor and RichEmailEditor are used by ComplaintDetailsScreen and should be shared",
+    "CUSTOMER_DB is modified by CustomerSearch when adding new customers - location matters for mutation",
+    "All date-based filtering uses DateRange type from types.ts",
+    "SSO_USER and ROLE_PERMISSIONS are used in multiple screens for access control",
+    "NotificationPanel is nested in TopBar but should be verified/extracted if needed"
+  ]
+}
