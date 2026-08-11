@@ -146,7 +146,7 @@ export function ComplaintsScreen({
             }}
           />
           <MultiSelect
-            label="Agent"
+            label="Assignees"
             options={ALL_AGENTS}
             selected={filterAgents}
             onChange={(v) => {
@@ -183,23 +183,21 @@ export function ComplaintsScreen({
               {paged.map((c) => (
                 <tr
                   key={c.id}
-                  className={`hover:bg-muted/30 transition-colors ${selectedIds.has(c.id) ? "bg-blue-50/40" : ""}`}
+                  className={`hover:bg-muted/30 transition-colors ${selectedIds.has(c.id) ? "bg-blue-50/40 cursor-pointer" : "cursor-pointer"}`}
+                  onClick={() => onNavigate("complaint-details", c.id)}
                 >
                   <td
-                    className="px-4 py-3 text-xs font-semibold text-primary cursor-pointer"
-                    onClick={() => onNavigate("complaint-details", c.id)}
+                    className="px-4 py-3 text-xs font-semibold text-primary"
                   >
                     {c.id}
                   </td>
                   <td
-                    className="px-4 py-3 text-xs text-foreground cursor-pointer"
-                    onClick={() => onNavigate("complaint-details", c.id)}
+                    className="px-4 py-3 text-xs text-foreground"
                   >
                     {c.customer.name}
                   </td>
                   <td
-                    className="px-4 py-3 text-xs text-foreground max-w-52 truncate cursor-pointer"
-                    onClick={() => onNavigate("complaint-details", c.id)}
+                    className="px-4 py-3 text-xs text-foreground max-w-52 truncate"
                   >
                     {c.subject}
                   </td>

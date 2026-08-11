@@ -323,7 +323,7 @@ export function DashboardScreen({
                   <td className="px-4 py-3 text-xs font-semibold text-primary">
                     {c.id}
                   </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-muted-foreground max-w-xs truncate">
+                  <td className="px-4 py-3 text-xs font-normal text-muted-foreground max-w-xs truncate">
                     {c.subject}
                   </td>
                   <td className="px-4 py-3">

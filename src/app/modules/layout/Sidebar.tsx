@@ -42,7 +42,7 @@ export function Sidebar({
   return (
     <aside
       className={`flex flex-col h-full transition-all duration-300 flex-shrink-0 ${collapsed ? "w-14" : "w-56"}`}
-      style={{ background: "#0e1d35" }}
+      style={{ background: "#1D1D1D" }}
     >
       <div
         className="flex items-center gap-2.5 px-4 py-4 border-b"

@@ -403,7 +403,7 @@ function CallPanel({
       <div className="px-4 py-2.5 border-b border-green-200 bg-green-50 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3 flex-wrap">
           <MiniSelect value={callOutcome} onChange={setCallOutcome} options={["Spoke with customer", "No answer — voicemail left", "No answer — no voicemail", "Inbound call from customer"]} />
-          <MiniSelect value={callDir} onChange={setCallDir} options={["Inbound", "Online Booking", "Email", "Company Portal", "Telephonic System"]} />
+          {/* <MiniSelect value={callDir} onChange={setCallDir} options={["Inbound", "Online Booking", "Email", "Company Portal", "Telephonic System"]} /> */}
         </div>
         <div className="flex gap-2">
           <button onClick={onCancel} className="px-3 py-1 text-xs rounded-lg border border-green-200 text-green-700 hover:bg-green-100 transition-colors">Cancel</button>
@@ -639,8 +639,8 @@ function TimelineEntry_({
   const [bodyExpanded, setBodyExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const isClosedEntry = entry.type === "status" && entry.text.startsWith("Complaint closed");
-  const [awaitingEdit, setAwaitingEdit] = useState(() => isClosedEntry && entry.text.includes("(Awaiting customer response.)"));
-  const [awaitingBase, setAwaitingBase] = useState(() => isClosedEntry && entry.text.includes("(Awaiting customer response.)"));
+  const [awaitingEdit, setAwaitingEdit] = useState(() => isClosedEntry && entry.text.includes("(Awaiting customer response)"));
+  const [awaitingBase, setAwaitingBase] = useState(() => isClosedEntry && entry.text.includes("(Awaiting customer response)"));
   const cfgKey = entry.type === "status"
     ? entry.text.startsWith("Complaint closed") ? "closed" : entry.text.startsWith("Complaint resolved") ? "resolved" : "status"
     : entry.type;
@@ -657,7 +657,7 @@ function TimelineEntry_({
     if (editing && editEditor) {
       editEditor.commands.setContent(editInitContent);
       if (isClosedEntry) {
-        const cur = entry.text.includes("(Awaiting customer response.)");
+        const cur = entry.text.includes("(Awaiting customer response)");
         setAwaitingEdit(cur);
         setAwaitingBase(cur);
       }
@@ -670,7 +670,7 @@ function TimelineEntry_({
     if (!editEditor || !canSaveEdit) return;
     if (isClosedEntry) {
       const summary = editEditor.getText().trim();
-      const suffix = awaitingEdit ? " (Awaiting customer response.)" : "";
+      const suffix = awaitingEdit ? " (Awaiting customer response)" : "";
       const newText = `Complaint closed${suffix}: ${summary}`;
       onEdit(entry.id, editEditor.getHTML(), newText);
     } else {
@@ -733,7 +733,7 @@ function TimelineEntry_({
                         <div className="flex flex-wrap gap-2">
                           {entry.emailAttachments.map((a, i) => (
                             <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-blue-200 text-xs text-blue-800 max-w-[200px]">
-                              <Icons.Paperclip size={10} className="text-blue-500 flex-shrink-0" />
+                              {/* <Icons.Paperclip size={10} className="text-blue-500 flex-shrink-0" /> */}
                               <span className="truncate font-medium">{a.name}</span>
                               <span className="text-[10px] text-blue-400 flex-shrink-0">{a.size < 1024 ? `${a.size}B` : a.size < 1048576 ? `${(a.size / 1024).toFixed(1)}KB` : `${(a.size / 1048576).toFixed(1)}MB`}</span>
                             </div>
@@ -898,7 +898,7 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
 
   function handleClose(summary: string, awaitingCustomer: boolean) {
     setStatus("Closed");
-    const suffix = awaitingCustomer ? " (Awaiting customer response.)" : "";
+    const suffix = awaitingCustomer ? " (Awaiting customer response)" : "";
     addEntry({ type: "status", author: SSO_USER.name, text: `Complaint closed${suffix}: ${summary}` });
     setShowClose(false);
     toast.success("Complaint closed.");
@@ -925,7 +925,9 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="font-mono text-sm font-bold text-primary">{base.id}</span>
                 <StatusBadge status={status} />
-                {isClosed && <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium">Locked</span>}
+                {isClosed 
+                // && <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium">Locked</span>
+                }
               </div>
               {!isClosed && (
                 <select value={status} onChange={(e) => handleDropdownStatusChange(e.target.value as Status)} className="px-3 py-2 text-xs rounded-lg border border-border bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-foreground font-medium flex-shrink-0">
