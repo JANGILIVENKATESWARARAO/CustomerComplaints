@@ -820,9 +820,41 @@ function TimelineList({
                   </button>
                 </div>
               ) : (
-                <button onClick={toggle} className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full border border-dashed border-border">
-                  <Icons.ChevronDown size={12} />
-                  <span>{seg.entries.length} note{seg.entries.length > 1 ? "s" : ""} / calls / emails</span>
+                <button onClick={toggle} className="w-full group">
+                  {(() => {
+                    const counts = seg.entries.reduce<Record<string, number>>((acc, e) => { acc[e.type] = (acc[e.type] || 0) + 1; return acc; }, {});
+                    const chips: { type: string; icon: ReactNode; count: number; color: string }[] = [
+                      counts.note && { type: "note", icon: <Icons.MessageSquare size={10} />, count: counts.note, color: "bg-gray-100 text-gray-600 border-gray-200" },
+                      counts.call && { type: "call", icon: <Icons.Phone size={10} />, count: counts.call, color: "bg-green-50 text-green-700 border-green-200" },
+                      counts.email && { type: "email", icon: <Icons.Mail size={10} />, count: counts.email, color: "bg-blue-50 text-blue-700 border-blue-200" },
+                    ].filter(Boolean) as { type: string; icon: ReactNode; count: number; color: string }[];
+                    const authors = [...new Map(seg.entries.map(e => [e.author, e.author])).values()].slice(0, 3);
+                    return (
+                      <div className="flex items-center gap-3 px-3 py-2 rounded-lg border border-border bg-muted/30 group-hover:bg-muted/60 group-hover:border-primary/20 transition-all shadow-sm">
+                        {/* Avatars */}
+                        <div className="flex -space-x-2 flex-shrink-0">
+                          {authors.map(a => (
+                            <span key={a} className="w-6 h-6 rounded-full bg-primary/15 border-2 border-background flex items-center justify-center text-[9px] font-bold text-primary">
+                              {a.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
+                            </span>
+                          ))}
+                        </div>
+                        {/* Count label */}
+                        <span className="text-xs font-medium text-foreground flex-shrink-0">
+                          {seg.entries.length} hidden
+                        </span>
+                        {/* Type chips */}
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          {chips.map(chip => (
+                            <span key={chip.type} className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium ${chip.color}`}>
+                              {chip.icon}×{chip.count}
+                            </span>
+                          ))}
+                        </div>
+                        <Icons.ChevronDown size={13} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                      </div>
+                    );
+                  })()}
                 </button>
               )}
             </div>
@@ -925,8 +957,8 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="font-mono text-sm font-bold text-primary">{base.id}</span>
                 <StatusBadge status={status} />
-                {isClosed 
-                // && <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium">Locked</span>
+                {isClosed
+                  // && <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium">Locked</span>
                 }
               </div>
               {!isClosed && (
