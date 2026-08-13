@@ -11,6 +11,7 @@ import { CUSTOMER_DB, DEALER_AGENTS } from "../../data";
 import { ALL_CATEGORIES, ALL_AGENTS } from "../../utils";
 import { SearchableSelect } from "../../components/ui/searchable-select";
 import * as Icons from "../../services/iconService";
+import { SSO_USER } from "../../constants";
 
 // ─── Local Helpers ─────────────────────────────────────────────────────────────
 
@@ -306,8 +307,7 @@ function CustomerSearch({
     toast.success("New customer added and selected.");
   };
 
-  const newFormValid =
-    newFirst.trim() && newLast.trim() && newEmail.trim() && newMobile.trim();
+const newFormValid = newFirst.trim() && newLast.trim() && (newEmail.trim() || newMobile.trim());
 
   const Mail = Icons.Mail;
   const MapPin = Icons.MapPin;
@@ -433,25 +433,19 @@ function CustomerSearch({
                 ))}
                 <div>
                   <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                    Email <span className="text-red-500">*</span>
+                    Email {!newMobile.trim() && <span className="text-red-500">*</span>}
+                    {newMobile.trim() && <span className="text-muted-foreground/60 font-normal">(optional)</span>}
                   </label>
-                  <input
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="Email address"
-                    className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                  />
+                  <input value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="Email address"
+                    className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                    Mobile <span className="text-red-500">*</span>
+                    Mobile {!newEmail.trim() && <span className="text-red-500">*</span>}
+                    {newEmail.trim() && <span className="text-muted-foreground/60 font-normal">(optional)</span>}
                   </label>
-                  <input
-                    value={newMobile}
-                    onChange={(e) => setNewMobile(e.target.value)}
-                    placeholder="Mobile number"
-                    className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
-                  />
+                  <input value={newMobile} onChange={e => setNewMobile(e.target.value)} placeholder="Mobile number"
+                    className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20" />
                 </div>
                 <div>
                   <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
@@ -619,7 +613,7 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
   }, []);
 
   const [dealer, setDealer] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignedTo, setAssignedTo] = useState(SSO_USER.name);
   const [source, setSource] = useState("");
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
@@ -659,8 +653,10 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
   }, [sec2Complete]);
 
   const availableAgents = dealer
-    ? (DEALER_AGENTS[dealer] ?? ALL_AGENTS)
-    : ALL_AGENTS;
+  ? Array.from(
+      new Set([SSO_USER.name, ...(DEALER_AGENTS[dealer] ?? ALL_AGENTS)]),
+    )
+  : ALL_AGENTS;
 
   const handleSubmit = () => {
     const e: Record<string, boolean> = {};
@@ -689,7 +685,7 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
     setCategory("");
     setDescription("");
     setPriority("");
-    setAssignedTo("");
+    setAssignedTo(SSO_USER.name);
     setDealer("");
     setSource("");
     setnewSteps(new Set([1]));
@@ -745,7 +741,7 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
                 value={dealer}
                 onChange={(v) => {
                   setDealer(v);
-                  setAssignedTo("");
+                  setAssignedTo(SSO_USER.name);
                 }}
                 options={Object.keys(DEALER_AGENTS)}
                 placeholder="Select dealer…"

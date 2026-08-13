@@ -963,7 +963,9 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
               </div>
               {!isClosed && (
                 <select value={status} onChange={(e) => handleDropdownStatusChange(e.target.value as Status)} className="px-3 py-2 text-xs rounded-lg border border-border bg-card focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-foreground font-medium flex-shrink-0">
-                  {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  {ALL_STATUSES.filter((s) => s !== "Pending").map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
               )}
             </div>

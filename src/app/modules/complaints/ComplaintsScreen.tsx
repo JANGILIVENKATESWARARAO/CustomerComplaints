@@ -129,7 +129,7 @@ export function ComplaintsScreen({
           </div>
           <MultiSelect
             label="Status"
-            options={ALL_STATUSES}
+            options={ALL_STATUSES.filter((s) => s !== "Pending")}
             selected={filterStatuses}
             onChange={(v) => {
               setFilterStatuses(v);
