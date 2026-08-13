@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Screen } from "../../types";
 import * as Icons from "../../services/iconService";
 import { SSO_USER, ROLE_PERMISSIONS } from "../../constants";
@@ -14,23 +15,23 @@ const NAV_ITEMS: {
   label: string;
   icon: (p: { size: number; className: string }) => React.ReactNode;
 }[] = [
-  {
-    key: "dashboard",
-    label: "Dashboard",
-    icon: (p) => <Icons.LayoutDashboard {...p} />,
-  },
-  {
-    key: "complaints",
-    label: "Complaints",
-    icon: (p) => <Icons.ListFilter {...p} />,
-  },
-  { key: "reports", label: "Reports", icon: (p) => <Icons.BarChart2 {...p} /> },
-  {
-    key: "settings",
-    label: "Settings",
-    icon: (p) => <Icons.Settings {...p} />,
-  },
-];
+    {
+      key: "dashboard",
+      label: "Dashboard",
+      icon: (p) => <Icons.LayoutDashboard {...p} />,
+    },
+    {
+      key: "complaints",
+      label: "Complaints",
+      icon: (p) => <Icons.ListFilter {...p} />,
+    },
+    { key: "reports", label: "Reports", icon: (p) => <Icons.BarChart2 {...p} /> },
+    {
+      key: "settings",
+      label: "Settings",
+      icon: (p) => <Icons.Settings {...p} />,
+    },
+  ];
 
 export function Sidebar({
   screen,
@@ -39,6 +40,7 @@ export function Sidebar({
   onNavigate,
 }: SidebarProps) {
   const perm = ROLE_PERMISSIONS[SSO_USER.role];
+  const [showUserMenu, setShowUserMenu] = useState(false);
   return (
     <aside
       className={`flex flex-col h-full transition-all duration-300 flex-shrink-0 ${collapsed ? "w-14" : "w-56"}`}
@@ -112,10 +114,10 @@ export function Sidebar({
               style={
                 active
                   ? {
-                      background: "rgba(255,255,255,0.1)",
-                      borderLeft: "2px solid #14b8a6",
-                      paddingLeft: collapsed ? undefined : "10px",
-                    }
+                    background: "rgba(255,255,255,0.1)",
+                    // borderLeft: "2px solid #14b8a6",
+                    paddingLeft: collapsed ? undefined : "10px",
+                  }
                   : {}
               }
             >
@@ -128,7 +130,7 @@ export function Sidebar({
           );
         })}
       </nav>
-      <div
+      {/* <div
         className="border-t px-3 py-3"
         style={{ borderColor: "rgba(255,255,255,0.07)" }}
       >
@@ -159,6 +161,242 @@ export function Sidebar({
                 title="Sign out"
               >
                 <Icons.LogOut size={12} className="text-white/40" />
+              </button>
+            </>
+          )}
+        </div>
+      </div> */}
+      <div
+        className="border-t px-3 py-3 relative"
+        style={{ borderColor: "rgba(255,255,255,0.07)" }}
+      >
+        {/* User Popup */}
+        {/* {showUserMenu && !collapsed && (
+          <div
+            className="absolute bottom-full right-2 mb-2 w-64 rounded-xl overflow-hidden shadow-2xl z-50"
+            style={{
+              background: "#262626",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          > */}
+        {/* User information */}
+        {/* <div className="px-4 py-3 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                  style={{ background: "#14b8a6" }}
+                > */}
+        {/* {SSO_USER.initials}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-semibold leading-tight truncate">
+                    {SSO_USER.name}
+                  </p>
+
+                  <p className="text-white/50 text-xs truncate">
+                    {SSO_USER.role}
+                  </p>
+                </div>
+              </div>
+            </div> */}
+
+        {/* Menu items */}
+        {/* <div className="py-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/85 hover:bg-white/5 transition-colors"
+              >
+                <Icons.Settings
+                  size={17}
+                  className="text-white/50 flex-shrink-0"
+                />
+                <span>Account</span>
+              </button> */}
+
+        {/* <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/85 hover:bg-white/5 transition-colors"
+              >
+                <Icons.Settings
+                  size={17}
+                  className="text-white/50 flex-shrink-0"
+                />
+                <span>Billing</span>
+              </button> */}
+
+        {/* <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/85 hover:bg-white/5 transition-colors"
+              >
+                <Icons.Bell
+                  size={17}
+                  className="text-white/50 flex-shrink-0"
+                />
+                <span>Notifications</span>
+              </button>
+            </div> */}
+
+        {/* Logout */}
+        {/* <div className="border-t border-white/5 py-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                  // Add your logout logic here
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 transition-colors"
+              >
+                <Icons.LogOut
+                  size={17}
+                  className="text-red-400 flex-shrink-0"
+                />
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        )} */}
+        {/* User Popup */}
+        {showUserMenu && !collapsed && (
+          <div
+            className="absolute left-full bottom-2 ml-2 w-64 rounded-xl overflow-hidden shadow-2xl z-50"
+            style={{
+              background: "#262626",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            {/* User information */}
+            <div className="px-4 py-3 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                  style={{ background: "#14b8a6" }}
+                >
+                  {SSO_USER.initials}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-white text-sm font-semibold leading-tight truncate">
+                    {SSO_USER.name}
+                  </p>
+
+                  <p className="text-white/50 text-xs truncate">
+                    {SSO_USER.role}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu items */}
+            <div className="py-1.5">
+
+              {/* Account */}
+              <button
+                type="button"
+                onClick={() => setShowUserMenu(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/85 hover:bg-white/5 transition-colors"
+              >
+                <Icons.Settings
+                  size={17}
+                  className="text-white/50 flex-shrink-0"
+                />
+                <span>Account</span>
+              </button>
+
+              {/* Billing */}
+              <button
+                type="button"
+                onClick={() => setShowUserMenu(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/85 hover:bg-white/5 transition-colors"
+              >
+                <Icons.Settings
+                  size={17}
+                  className="text-white/50 flex-shrink-0"
+                />
+                <span>Billing</span>
+              </button>
+
+              {/* Notifications */}
+              <button
+                type="button"
+                onClick={() => setShowUserMenu(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-white/85 hover:bg-white/5 transition-colors"
+              >
+                <Icons.Bell
+                  size={17}
+                  className="text-white/50 flex-shrink-0"
+                />
+                <span>Notifications</span>
+              </button>
+
+            </div>
+
+            {/* Logout */}
+            <div className="border-t border-white/5 py-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUserMenu(false);
+                  // logout logic here
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 transition-colors"
+              >
+                <Icons.LogOut
+                  size={17}
+                  className="text-red-400 flex-shrink-0"
+                />
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* User section */}
+        <div
+          className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : ""
+            }`}
+        >
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+            style={{ background: "#14b8a6" }}
+          >
+            {SSO_USER.initials}
+          </div>
+
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-xs font-semibold leading-tight truncate">
+                  {SSO_USER.name}
+                </p>
+
+                <p
+                  style={{ color: "#7fa8c9", fontSize: "10px" }}
+                  className="leading-tight truncate"
+                >
+                  {SSO_USER.role}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowUserMenu((prev) => !prev)}
+                className={`p-1.5 rounded-md transition-colors ${showUserMenu
+                  ? "bg-white/10 text-white"
+                  : "hover:bg-white/10 text-white/40"
+                  }`}
+                title="User menu"
+              >
+                <Icons.LogOut size={12} />
               </button>
             </>
           )}

@@ -188,9 +188,11 @@ function useRichEditor(placeholder: string, content = "") {
 
 function RichEditor({
   editor,
+  showToolbar = true,
 }: {
   editor: ReturnType<typeof useEditor>;
   placeholder?: string;
+  showToolbar?: boolean;
 }) {
   const [fontSizeOpen, setFontSizeOpen] = useState(false);
   const [colorOpen, setColorOpen] = useState(false);
@@ -256,114 +258,120 @@ function RichEditor({
 
   return (
     <>
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border bg-muted/30 flex-wrap">
-        {btn("Undo", <Icons.Undo2 size={12} />, () => editor.chain().focus().undo().run())}
-        {btn("Redo", <Icons.Redo2 size={12} />, () => editor.chain().focus().redo().run())}
-        {sep()}
-        {btn("Bold", <Icons.Bold size={12} />, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
-        {btn("Italic", <Icons.Italic size={12} />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"))}
-        {btn("Underline", <Icons.UnderlineIcon size={12} />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"))}
-        {btn("Strikethrough", <Icons.Strikethrough size={12} />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"))}
-        {sep()}
-        <div ref={fsRef} className="relative flex-shrink-0">
-          <button type="button" title="Font size" onMouseDown={(e) => { e.preventDefault(); setFontSizeOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
-            <Icons.Type size={11} /><Icons.ChevronDown size={9} />
-          </button>
-          {fontSizeOpen && (
-            <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-16 max-h-48 overflow-y-auto">
-              {FONT_SIZES.map((s) => (
-                <button key={s} type="button" onMouseDown={(e) => { e.preventDefault(); (editor.chain().focus() as any).setFontSize(s + "px").run(); setFontSizeOpen(false); }} className="w-full text-left px-3 py-1 text-xs hover:bg-muted transition-colors">{s}</button>
-              ))}
-            </div>
-          )}
-        </div>
-        <div ref={clRef} className="relative flex-shrink-0">
-          <button type="button" title="Text color" onMouseDown={(e) => { e.preventDefault(); setColorOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
-            <span className="font-bold text-xs" style={{ color: editor.getAttributes("textStyle").color ?? "#111827" }}>A</span><Icons.ChevronDown size={9} />
-          </button>
-          {colorOpen && (
-            <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl p-2 flex flex-wrap gap-1 w-28">
-              {TEXT_COLORS.map((c) => (
-                <button key={c} type="button" title={c} onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().setColor(c).run(); setColorOpen(false); }} className="w-5 h-5 rounded border border-border hover:scale-110 transition-transform" style={{ background: c === "#ffffff" ? "#f3f4f6" : c }} />
-              ))}
-              <button type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setColorOpen(false); }} className="w-full text-xs text-muted-foreground hover:text-foreground mt-1 text-center">Reset</button>
-            </div>
-          )}
-        </div>
-        <div ref={bgRef} className="relative flex-shrink-0">
-          <button type="button" title="Highlight color" onMouseDown={(e) => { e.preventDefault(); setBgColorOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
-            <Icons.Highlighter size={12} /><Icons.ChevronDown size={9} />
-          </button>
-          {bgColorOpen && (
-            <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl p-2 flex flex-wrap gap-1 w-28">
-              {BG_COLORS.map((c) => (
-                <button key={c} type="button" title={c} onMouseDown={(e) => { e.preventDefault(); c === "transparent" ? editor.chain().focus().unsetHighlight().run() : editor.chain().focus().setHighlight({ color: c }).run(); setBgColorOpen(false); }} className="w-5 h-5 rounded border border-border hover:scale-110 transition-transform" style={{ background: c === "transparent" ? "linear-gradient(135deg,#fff 40%,#e5e7eb 40%)" : c }} />
-              ))}
-            </div>
-          )}
-        </div>
-        {sep()}
-        <div ref={alRef} className="relative flex-shrink-0">
-          <button type="button" title="Text alignment" onMouseDown={(e) => { e.preventDefault(); setAlignOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
-            {alignIcons[currentAlign]}<Icons.ChevronDown size={9} />
-          </button>
-          {alignOpen && (
-            <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-32">
-              {(["left", "center", "right", "justify"] as const).map((a) => (
-                <button key={a} type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().setTextAlign(a).run(); setAlignOpen(false); }} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${editor.isActive({ textAlign: a }) ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}>
-                  {alignIcons[a]}{a.charAt(0).toUpperCase() + a.slice(1)}
+      {showToolbar && (
+        <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border bg-muted/30 flex-wrap">
+          {
+            <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border bg-muted/30 flex-wrap">
+              {btn("Undo", <Icons.Undo2 size={12} />, () => editor.chain().focus().undo().run())}
+              {btn("Redo", <Icons.Redo2 size={12} />, () => editor.chain().focus().redo().run())}
+              {sep()}
+              {btn("Bold", <Icons.Bold size={12} />, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
+              {btn("Italic", <Icons.Italic size={12} />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"))}
+              {btn("Underline", <Icons.UnderlineIcon size={12} />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"))}
+              {btn("Strikethrough", <Icons.Strikethrough size={12} />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"))}
+              {sep()}
+              <div ref={fsRef} className="relative flex-shrink-0">
+                <button type="button" title="Font size" onMouseDown={(e) => { e.preventDefault(); setFontSizeOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
+                  <Icons.Type size={11} /><Icons.ChevronDown size={9} />
                 </button>
-              ))}
+                {fontSizeOpen && (
+                  <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-16 max-h-48 overflow-y-auto">
+                    {FONT_SIZES.map((s) => (
+                      <button key={s} type="button" onMouseDown={(e) => { e.preventDefault(); (editor.chain().focus() as any).setFontSize(s + "px").run(); setFontSizeOpen(false); }} className="w-full text-left px-3 py-1 text-xs hover:bg-muted transition-colors">{s}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div ref={clRef} className="relative flex-shrink-0">
+                <button type="button" title="Text color" onMouseDown={(e) => { e.preventDefault(); setColorOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
+                  <span className="font-bold text-xs" style={{ color: editor.getAttributes("textStyle").color ?? "#111827" }}>A</span><Icons.ChevronDown size={9} />
+                </button>
+                {colorOpen && (
+                  <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl p-2 flex flex-wrap gap-1 w-28">
+                    {TEXT_COLORS.map((c) => (
+                      <button key={c} type="button" title={c} onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().setColor(c).run(); setColorOpen(false); }} className="w-5 h-5 rounded border border-border hover:scale-110 transition-transform" style={{ background: c === "#ffffff" ? "#f3f4f6" : c }} />
+                    ))}
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().unsetColor().run(); setColorOpen(false); }} className="w-full text-xs text-muted-foreground hover:text-foreground mt-1 text-center">Reset</button>
+                  </div>
+                )}
+              </div>
+              <div ref={bgRef} className="relative flex-shrink-0">
+                <button type="button" title="Highlight color" onMouseDown={(e) => { e.preventDefault(); setBgColorOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
+                  <Icons.Highlighter size={12} /><Icons.ChevronDown size={9} />
+                </button>
+                {bgColorOpen && (
+                  <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl p-2 flex flex-wrap gap-1 w-28">
+                    {BG_COLORS.map((c) => (
+                      <button key={c} type="button" title={c} onMouseDown={(e) => { e.preventDefault(); c === "transparent" ? editor.chain().focus().unsetHighlight().run() : editor.chain().focus().setHighlight({ color: c }).run(); setBgColorOpen(false); }} className="w-5 h-5 rounded border border-border hover:scale-110 transition-transform" style={{ background: c === "transparent" ? "linear-gradient(135deg,#fff 40%,#e5e7eb 40%)" : c }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+              {sep()}
+              <div ref={alRef} className="relative flex-shrink-0">
+                <button type="button" title="Text alignment" onMouseDown={(e) => { e.preventDefault(); setAlignOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
+                  {alignIcons[currentAlign]}<Icons.ChevronDown size={9} />
+                </button>
+                {alignOpen && (
+                  <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-32">
+                    {(["left", "center", "right", "justify"] as const).map((a) => (
+                      <button key={a} type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().setTextAlign(a).run(); setAlignOpen(false); }} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${editor.isActive({ textAlign: a }) ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}>
+                        {alignIcons[a]}{a.charAt(0).toUpperCase() + a.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {sep()}
+              {btn("Outdent", <Icons.Outdent size={12} />, () => editor.chain().focus().liftListItem("listItem").run())}
+              {btn("Indent", <Icons.Indent size={12} />, () => editor.chain().focus().sinkListItem("listItem").run())}
+              {sep()}
+              <div ref={liRef} className="relative flex-shrink-0">
+                <button type="button" title="Lists" onMouseDown={(e) => { e.preventDefault(); setListOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
+                  <Icons.List size={12} /><Icons.ChevronDown size={9} />
+                </button>
+                {listOpen && (
+                  <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-36">
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleBulletList().run(); setListOpen(false); }} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${editor.isActive("bulletList") ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}><Icons.List size={11} />Bullet List</button>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleOrderedList().run(); setListOpen(false); }} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${editor.isActive("orderedList") ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}><Icons.ListOrdered size={11} />Ordered List</button>
+                  </div>
+                )}
+              </div>
+              <div ref={tbRef} className="relative flex-shrink-0">
+                <button type="button" title="Table" onMouseDown={(e) => { e.preventDefault(); setTableOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
+                  <Icons.TableIcon size={12} /><Icons.ChevronDown size={9} />
+                </button>
+                {tableOpen && (
+                  <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-44">
+                    {[
+                      ["Insert table", () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()],
+                      ["Add row above", () => editor.chain().focus().addRowBefore().run()],
+                      ["Add row below", () => editor.chain().focus().addRowAfter().run()],
+                      ["Delete row", () => editor.chain().focus().deleteRow().run()],
+                      ["Add column before", () => editor.chain().focus().addColumnBefore().run()],
+                      ["Add column after", () => editor.chain().focus().addColumnAfter().run()],
+                      ["Delete column", () => editor.chain().focus().deleteColumn().run()],
+                      ["Delete table", () => editor.chain().focus().deleteTable().run()],
+                    ].map(([label, action]) => (
+                      <button key={label as string} type="button" onMouseDown={(e) => { e.preventDefault(); (action as () => void)(); setTableOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors">{label as string}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {sep()}
+              {btn("Blockquote", <Icons.Quote size={12} />, () => editor.chain().focus().toggleBlockquote().run(), editor.isActive("blockquote"))}
+              {btn("Link", <Icons.LinkIcon size={12} />, () => {
+                const prev = editor.getAttributes("link").href;
+                const url = window.prompt("Enter URL", prev ?? "https://");
+                if (url === null) return;
+                url === "" ? editor.chain().focus().unsetLink().run() : editor.chain().focus().setLink({ href: url }).run();
+              }, editor.isActive("link"))}
+              {sep()}
+              {btn("Clear formatting", <Icons.RemoveFormatting size={12} />, () => editor.chain().focus().clearNodes().unsetAllMarks().run())}
             </div>
-          )}
+          }
         </div>
-        {sep()}
-        {btn("Outdent", <Icons.Outdent size={12} />, () => editor.chain().focus().liftListItem("listItem").run())}
-        {btn("Indent", <Icons.Indent size={12} />, () => editor.chain().focus().sinkListItem("listItem").run())}
-        {sep()}
-        <div ref={liRef} className="relative flex-shrink-0">
-          <button type="button" title="Lists" onMouseDown={(e) => { e.preventDefault(); setListOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
-            <Icons.List size={12} /><Icons.ChevronDown size={9} />
-          </button>
-          {listOpen && (
-            <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-36">
-              <button type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleBulletList().run(); setListOpen(false); }} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${editor.isActive("bulletList") ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}><Icons.List size={11} />Bullet List</button>
-              <button type="button" onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleOrderedList().run(); setListOpen(false); }} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${editor.isActive("orderedList") ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}><Icons.ListOrdered size={11} />Ordered List</button>
-            </div>
-          )}
-        </div>
-        <div ref={tbRef} className="relative flex-shrink-0">
-          <button type="button" title="Table" onMouseDown={(e) => { e.preventDefault(); setTableOpen((v) => !v); }} className="flex items-center gap-0.5 px-1.5 py-1 rounded text-xs text-muted-foreground hover:bg-muted transition-colors">
-            <Icons.TableIcon size={12} /><Icons.ChevronDown size={9} />
-          </button>
-          {tableOpen && (
-            <div className="absolute z-[500] top-full mt-0.5 left-0 bg-card border border-border rounded-lg shadow-xl py-1 w-44">
-              {[
-                ["Insert table", () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()],
-                ["Add row above", () => editor.chain().focus().addRowBefore().run()],
-                ["Add row below", () => editor.chain().focus().addRowAfter().run()],
-                ["Delete row", () => editor.chain().focus().deleteRow().run()],
-                ["Add column before", () => editor.chain().focus().addColumnBefore().run()],
-                ["Add column after", () => editor.chain().focus().addColumnAfter().run()],
-                ["Delete column", () => editor.chain().focus().deleteColumn().run()],
-                ["Delete table", () => editor.chain().focus().deleteTable().run()],
-              ].map(([label, action]) => (
-                <button key={label as string} type="button" onMouseDown={(e) => { e.preventDefault(); (action as () => void)(); setTableOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-muted transition-colors">{label as string}</button>
-              ))}
-            </div>
-          )}
-        </div>
-        {sep()}
-        {btn("Blockquote", <Icons.Quote size={12} />, () => editor.chain().focus().toggleBlockquote().run(), editor.isActive("blockquote"))}
-        {btn("Link", <Icons.LinkIcon size={12} />, () => {
-          const prev = editor.getAttributes("link").href;
-          const url = window.prompt("Enter URL", prev ?? "https://");
-          if (url === null) return;
-          url === "" ? editor.chain().focus().unsetLink().run() : editor.chain().focus().setLink({ href: url }).run();
-        }, editor.isActive("link"))}
-        {sep()}
-        {btn("Clear formatting", <Icons.RemoveFormatting size={12} />, () => editor.chain().focus().clearNodes().unsetAllMarks().run())}
-      </div>
+      )}
       <div className="bg-white min-h-32 max-h-64 overflow-y-auto px-4 py-3 [&_.tiptap]:outline-none [&_.tiptap]:min-h-28 [&_.tiptap]:text-sm [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none [&_.tiptap_p.is-editor-empty:first-child::before]:float-left [&_.tiptap_blockquote]:border-l-4 [&_.tiptap_blockquote]:border-primary/30 [&_.tiptap_blockquote]:pl-4 [&_.tiptap_blockquote]:text-muted-foreground [&_.tiptap_blockquote]:italic [&_.tiptap_blockquote]:my-2 [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-5 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-5 [&_.tiptap_strong]:font-bold [&_.tiptap_em]:italic [&_.tiptap_u]:underline [&_.tiptap_s]:line-through [&_.tiptap_a]:text-primary [&_.tiptap_a]:underline [&_.tiptap_table]:w-full [&_.tiptap_table]:border-collapse [&_.tiptap_table]:my-2 [&_.tiptap_td]:border [&_.tiptap_td]:border-border [&_.tiptap_td]:px-2 [&_.tiptap_td]:py-1.5 [&_.tiptap_td]:text-xs [&_.tiptap_th]:border [&_.tiptap_th]:border-border [&_.tiptap_th]:px-2 [&_.tiptap_th]:py-1.5 [&_.tiptap_th]:text-xs [&_.tiptap_th]:bg-muted [&_.tiptap_th]:font-semibold">
         <EditorContent editor={editor} />
       </div>
@@ -383,7 +391,7 @@ function NotePanel({ onSave, onCancel }: { onSave: (html: string, text: string) 
           <button onClick={() => { if (!editor || isEmpty) return; onSave(editor.getHTML(), editor.getText()); }} disabled={isEmpty} className="px-3 py-1 text-xs rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-40 font-medium">Save Note</button>
         </div>
       </div>
-      <RichEditor editor={editor} />
+      <RichEditor editor={editor} showToolbar={false} />
     </div>
   );
 }
@@ -410,7 +418,7 @@ function CallPanel({
           <button onClick={() => { if (!editor || isEmpty) return; onSave(editor.getHTML(), editor.getText()); }} disabled={isEmpty} className="flex items-center gap-1.5 px-3 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium disabled:opacity-40 disabled:cursor-not-allowed"><Icons.Mic size={11} />Save Call</button>
         </div>
       </div>
-      <RichEditor editor={editor} />
+      <RichEditor editor={editor} showToolbar={false} />
     </div>
   );
 }
@@ -418,7 +426,7 @@ function CallPanel({
 // ─── RichEmailEditor ───────────────────────────────────────────────────────────
 
 function RichEmailEditor({
-  onSend, onCancel, toEmail, toName: _toName, defaultSubject, quotedHtml,
+  onSend, onCancel, toEmail, toName: _toName, defaultSubject, quotedHtml, mode = "new",
 }: {
   onSend: (subject: string, html: string, text: string, attachments: { name: string; size: number; type: string }[]) => void;
   onCancel: () => void;
@@ -426,6 +434,7 @@ function RichEmailEditor({
   toName: string;
   defaultSubject: string;
   quotedHtml?: string;
+  mode?: "new" | "reply" | "forward";
 }) {
   const [to, setTo] = useState(toEmail);
   const [cc, setCc] = useState("");
@@ -446,7 +455,23 @@ function RichEmailEditor({
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: "Enter message…" }),
     ],
-    content: quotedHtml ? `<p></p><blockquote>${quotedHtml}</blockquote>` : "",
+    content:
+      mode === "forward" && quotedHtml
+        ? `
+      <p></p>
+      <p>---------- Forwarded message ----------</p>
+      <blockquote>
+        ${quotedHtml}
+      </blockquote>
+    `
+        : mode === "reply" && quotedHtml
+          ? `
+        <p></p>
+        <blockquote>
+          ${quotedHtml}
+        </blockquote>
+      `
+          : "",
     autofocus: "start",
     onUpdate: ({ editor: e }) => setEditorEmpty(e.isEmpty),
     onCreate: ({ editor: e }) => setEditorEmpty(e.isEmpty),
@@ -629,11 +654,12 @@ function ReopenModal({ onConfirm, onCancel }: { onConfirm: (reason: string) => v
 // ─── TimelineEntry_ ────────────────────────────────────────────────────────────
 
 function TimelineEntry_({
-  entry, isLast, onViewEmailThread, onReply, onEdit,
+  entry, isLast, onViewEmailThread, onReply, onForward, onEdit,
 }: {
   entry: TimelineEntry; isLast: boolean;
   onViewEmailThread: (id: string) => void;
   onReply: (entry: TimelineEntry) => void;
+  onForward: (entry: TimelineEntry) => void;
   onEdit: (id: string, html: string, text: string) => void;
 }) {
   const [bodyExpanded, setBodyExpanded] = useState(false);
@@ -751,6 +777,7 @@ function TimelineEntry_({
                   <div className="flex items-center gap-2 mt-1">
                     <button onClick={() => setBodyExpanded(true)} className="text-xs text-blue-600 hover:underline flex items-center gap-1"><Icons.Mail size={11} />View message</button>
                     <button onClick={() => onReply(entry)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"><Icons.Reply size={11} />Reply</button>
+                    <button onClick={() => onForward(entry)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"><Icons.Forward size={11} />Forward</button>
                   </div>
                 )}
               </div>
@@ -768,11 +795,12 @@ function TimelineEntry_({
 // ─── TimelineList ──────────────────────────────────────────────────────────────
 
 function TimelineList({
-  timeline, onViewEmailThread, onReply, onEdit,
+  timeline, onViewEmailThread, onReply, onForward, onEdit,
 }: {
   timeline: TimelineEntry[];
   onViewEmailThread: (id: string) => void;
   onReply: (entry: TimelineEntry) => void;
+  onForward: (entry: TimelineEntry) => void;
   onEdit: (id: string, html: string, text: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -792,7 +820,7 @@ function TimelineList({
       {segments.map((seg, si) => {
         const isLastSegment = si === segments.length - 1;
         if (seg.kind === "entry") {
-          return <TimelineEntry_ key={seg.entry.id} entry={seg.entry} isLast={isLastSegment} onViewEmailThread={onViewEmailThread} onReply={onReply} onEdit={onEdit} />;
+          return <TimelineEntry_ key={seg.entry.id} entry={seg.entry} isLast={isLastSegment} onViewEmailThread={onViewEmailThread} onReply={onReply} onForward={onForward} onEdit={onEdit} />;
         }
         const isOpen = expanded.has(seg.groupId);
         const toggle = () => setExpanded((prev) => {
@@ -812,7 +840,7 @@ function TimelineList({
                 <div className="w-full border border-border rounded-lg overflow-hidden">
                   {seg.entries.map((e, ei) => (
                     <div key={e.id} className={`px-4 py-3 min-w-0 overflow-hidden ${ei < seg.entries.length - 1 ? "border-b border-border" : ""}`}>
-                      <TimelineEntry_ entry={e} isLast={ei === seg.entries.length - 1} onViewEmailThread={onViewEmailThread} onReply={onReply} onEdit={onEdit} />
+                      <TimelineEntry_ entry={e} isLast={ei === seg.entries.length - 1} onViewEmailThread={onViewEmailThread} onReply={onReply} onForward={onForward} onEdit={onEdit} />
                     </div>
                   ))}
                   <button onClick={toggle} className="w-full px-4 py-2 text-center text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border-t border-border">
@@ -885,6 +913,7 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
   const [callDir, setCallDir] = useState("Inbound");
   const [descExpanded, setDescExpanded] = useState(false);
   const [replyToEntry, setReplyToEntry] = useState<TimelineEntry | null>(null);
+  const [forwardToEntry, setForwardToEntry] = useState<TimelineEntry | null>(null);
 
   function addEntry(partial: Omit<TimelineEntry, "id" | "timestamp">) {
     setTimeline((prev) => [{ id: String(Date.now()), timestamp: nowStamp(), ...partial }, ...prev]);
@@ -1003,8 +1032,49 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
             {action === "note" && (
               <NotePanel key="note-panel" onSave={(html, text) => { addEntry({ type: "note", author: SSO_USER.name, text: text.slice(0, 120) + (text.length > 120 ? "…" : ""), emailHtml: html }); setAction(null); toast.success("Note saved."); }} onCancel={() => setAction(null)} />
             )}
-            {(action === "email" || replyToEntry) && (
+            {/* {(action === "email" || replyToEntry) && (
               <RichEmailEditor key={replyToEntry?.id ?? "new"} toEmail={base.customer.email} toName={base.customer.name} defaultSubject={replyToEntry?.emailSubject ? `Re: ${replyToEntry.emailSubject}` : `Re: Complaint ${base.id}`} quotedHtml={replyToEntry?.emailHtml} onSend={handleSendEmail} onCancel={() => { setAction(null); setReplyToEntry(null); }} />
+            )} */}
+            {(action === "email" || replyToEntry || forwardToEntry) && (
+              <RichEmailEditor
+                key={replyToEntry?.id ?? forwardToEntry?.id ?? "new"}
+
+                toEmail={base.customer.email}
+                toName={base.customer.name}
+
+                mode={
+                  forwardToEntry
+                    ? "forward"
+                    : replyToEntry
+                      ? "reply"
+                      : "new"
+                }
+
+                defaultSubject={
+                  forwardToEntry
+                    ? forwardToEntry.emailSubject
+                      ? `Fwd: ${forwardToEntry.emailSubject}`
+                      : `Fwd: Complaint ${base.id}`
+                    : replyToEntry
+                      ? replyToEntry.emailSubject
+                        ? `Re: ${replyToEntry.emailSubject}`
+                        : `Re: Complaint ${base.id}`
+                      : ""
+                }
+
+                quotedHtml={
+                  forwardToEntry?.emailHtml ||
+                  replyToEntry?.emailHtml
+                }
+
+                onSend={handleSendEmail}
+
+                onCancel={() => {
+                  setAction(null);
+                  setReplyToEntry(null);
+                  setForwardToEntry(null);
+                }}
+              />
             )}
             {action === "call" && (
               <CallPanel key="call-panel" callOutcome={callOutcome} setCallOutcome={setCallOutcome} callDir={callDir} setCallDir={setCallDir} onSave={(html, text) => { addEntry({ type: "call", author: SSO_USER.name, text: `${callDir} call — ${callOutcome}.${text.trim() ? " Notes: " + text.slice(0, 80) : ""}`, emailHtml: html }); setAction(null); toast.success("Call recorded."); }} onCancel={() => setAction(null)} />
@@ -1028,7 +1098,7 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
 
         <Card className="p-5">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Activity &amp; Communication Timeline</h3>
-          <TimelineList timeline={timeline} onViewEmailThread={setShowEmailThread} onReply={(entry) => { setReplyToEntry(entry); setAction("email"); }} onEdit={handleEditEntry} />
+          <TimelineList timeline={timeline} onViewEmailThread={setShowEmailThread} onReply={(entry) => { setReplyToEntry(entry); setAction("email"); }} onForward={(entry) => { setForwardToEntry(entry); setReplyToEntry(null); setAction("email"); }} onEdit={handleEditEntry} />
         </Card>
       </div>
     </>

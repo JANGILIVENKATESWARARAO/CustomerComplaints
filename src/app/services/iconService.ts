@@ -16,6 +16,7 @@ export {
   Mail,
   Clock,
   FileText,
+  Forward,
   AlertTriangle,
   Info,
   Sun,
