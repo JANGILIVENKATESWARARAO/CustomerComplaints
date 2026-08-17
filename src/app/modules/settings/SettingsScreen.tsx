@@ -18,6 +18,17 @@ interface StatusItem {
   active: boolean;
 }
 
+export interface SourceItem {
+  name: string;
+  active: boolean;
+}
+const INITIAL_SOURCE_ITEMS: SourceItem[] = [
+  { name: "Inbound", active: true },
+  { name: "Online Booking", active: true },
+  { name: "Email", active: true },
+  { name: "Company Portal", active: true },
+  { name: "Telephonic System", active: true } 
+]; 
 const INITIAL_CATEGORIES: CategoryItem[] = [
   { name: "Vehicle Quality", count: 34, active: true },
   { name: "Service Quality", count: 27, active: true },
@@ -28,90 +39,22 @@ const INITIAL_CATEGORIES: CategoryItem[] = [
   { name: "Accessibility", count: 2, active: false },
 ];
 
-const INITIAL_STATUS_ITEMS: StatusItem[] = [
-  { name: "New", active: true },
-  { name: "In Progress", active: true },
-  { name: "Pending", active: true },
-  { name: "Awaiting Customer", active: true },
-  { name: "Resolved", active: true },
-  { name: "Closed", active: true },
-];
-
-const USERS_LIST = [
-  {
-    name: "Jangili Rao",
-    email: "j.rao@parkway.co.uk",
-    role: "Admin" as UserRole,
-    dealer: "All Centres",
-    active: true,
-  },
-  {
-    name: "Sarah Wilson",
-    email: "s.wilson@parkway.co.uk",
-    role: "Customer Relations" as UserRole,
-    dealer: "Parkway Derby",
-    active: true,
-  },
-  {
-    name: "James Patterson",
-    email: "j.patterson@parkway.co.uk",
-    role: "Service Advisor" as UserRole,
-    dealer: "Parkway Sheffield",
-    active: true,
-  },
-  {
-    name: "Emma Clarke",
-    email: "e.clarke@parkway.co.uk",
-    role: "Customer Relations" as UserRole,
-    dealer: "Parkway Leeds",
-    active: true,
-  },
-  {
-    name: "David Hughes",
-    email: "d.hughes@parkway.co.uk",
-    role: "Service Advisor" as UserRole,
-    dealer: "Parkway Manchester",
-    active: false,
-  },
-];
-
-const DEALERS_LIST = [
-  {
-    name: "Parkway Derby",
-    code: "PKW-DBY",
-    region: "East Midlands",
-    active: true,
-  },
-  {
-    name: "Parkway Sheffield",
-    code: "PKW-SHF",
-    region: "Yorkshire",
-    active: true,
-  },
-  { name: "Parkway Leeds", code: "PKW-LDS", region: "Yorkshire", active: true },
-  {
-    name: "Parkway Manchester",
-    code: "PKW-MCR",
-    region: "North West",
-    active: true,
-  },
-];
-
 // ─── SettingsScreen ────────────────────────────────────────────────────────────
 
 export function SettingsScreen() {
   const [tab, setTab] = useState<
-    "categories" | "statuses" | "users" | "dealers"
+    "categories" | "sources"  //| "statuses" | "users" | "dealers"
   >("categories");
   const [categories, setCategories] =
     useState<CategoryItem[]>(INITIAL_CATEGORIES);
-  const [statuses, setStatuses] = useState<StatusItem[]>(INITIAL_STATUS_ITEMS);
+     
+
+  const [sources, setSources] =
+    useState<SourceItem[]>(INITIAL_SOURCE_ITEMS); 
   const [catPage, setCatPage] = useState(1);
-  const [usrPage, setUsrPage] = useState(1);
-  const [dlrPage, setDlrPage] = useState(1);
+  const [sourcePage, setSourcePage] = useState(1); 
   const [catPageSize, setCatPageSize] = useState(10);
-  const [usrPageSize, setUsrPageSize] = useState(10);
-  const [dlrPageSize, setDlrPageSize] = useState(10);
+  const [sourcePageSize, setSourcePageSize] = useState(10); 
 
   const perm = ROLE_PERMISSIONS[SSO_USER.role];
 
@@ -137,23 +80,17 @@ export function SettingsScreen() {
     (catPage - 1) * catPageSize,
     catPage * catPageSize,
   );
-  const pagedUsr = USERS_LIST.slice(
-    (usrPage - 1) * usrPageSize,
-    usrPage * usrPageSize,
-  );
-  const pagedDlr = DEALERS_LIST.slice(
-    (dlrPage - 1) * dlrPageSize,
-    dlrPage * dlrPageSize,
-  );
+  const pagedSources = INITIAL_SOURCE_ITEMS.slice(
+     (sourcePage - 1) * sourcePageSize,
+     sourcePage * sourcePageSize,
+   ); 
 
   const tabs: {
-    key: "categories" | "statuses" | "users" | "dealers";
+    key: "categories" | "sources" ,  
     label: string;
   }[] = [
     { key: "categories", label: "Categories" },
-    { key: "statuses", label: "Statuses" },
-    { key: "users", label: "Users & Roles" },
-    { key: "dealers", label: "Dealers" },
+    { key: "sources", label: "Sources" }     
   ];
 
   return (
@@ -261,8 +198,8 @@ export function SettingsScreen() {
         </Card>
       )}
 
-      {/* Statuses */}
-      {tab === "statuses" && (
+       {/* Statuses */}
+       {tab === "sources" && (
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">
@@ -272,7 +209,7 @@ export function SettingsScreen() {
           <table className="w-full">
             <thead>
               <tr className="bg-muted/40">
-                {["Status", "Badge", "Active/Inactive"].map((h) => (
+                {["Source",   "Active/Inactive"].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground"
@@ -283,23 +220,20 @@ export function SettingsScreen() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {statuses.map((s) => (
+              {sources.map((s) => (
                 <tr
                   key={s.name}
                   className="hover:bg-muted/20 transition-colors"
                 >
                   <td className="px-4 py-3 text-xs font-medium text-foreground">
                     {s.name}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={s.name} />
-                  </td>
+                  </td> 
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <ToggleSwitch
                         checked={s.active}
                         onChange={(v) =>
-                          setStatuses((prev) =>
+                          setSources((prev) =>
                             prev.map((st) =>
                               st.name === s.name ? { ...st, active: v } : st,
                             ),
@@ -318,167 +252,9 @@ export function SettingsScreen() {
             </tbody>
           </table>
         </Card>
-      )}
+      )} 
 
-      {/* Users */}
-      {tab === "users" && (
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-            <h2 className="text-sm font-semibold text-foreground">
-              Users &amp; Roles
-            </h2>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-              <Icons.Users size={12} />
-              Invite User
-            </button>
-          </div>
-          <table className="w-full">
-            <thead>
-              <tr className="bg-muted/40">
-                {["Name", "Email", "Role", "Dealer", "Status", ""].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {pagedUsr.map((u) => (
-                <tr
-                  key={u.email}
-                  className="hover:bg-muted/20 transition-colors"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <span className="text-primary text-xs font-bold">
-                          {u.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </span>
-                      </div>
-                      <span className="text-xs font-medium text-foreground">
-                        {u.name}
-                      </span>
-                      {u.email === SSO_USER.email && (
-                        <span className="text-xs text-muted-foreground">
-                          (You)
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {u.email}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-muted text-foreground font-medium">
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {u.dealer}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${u.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}
-                    >
-                      {u.active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button className="text-xs text-primary hover:underline">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <PaginationControl
-            page={usrPage}
-            total={USERS_LIST.length}
-            pageSize={usrPageSize}
-            onChange={setUsrPage}
-            onPageSizeChange={(s) => {
-              setUsrPageSize(s);
-              setUsrPage(1);
-            }}
-          />
-        </Card>
-      )}
-
-      {/* Dealers */}
-      {tab === "dealers" && (
-        <Card className="overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-            <h2 className="text-sm font-semibold text-foreground">
-              Dealer Centres
-            </h2>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-              <Icons.Building2 size={12} />
-              Add Dealer
-            </button>
-          </div>
-          <table className="w-full">
-            <thead>
-              <tr className="bg-muted/40">
-                {["Dealer Name", "Code", "Region", "Status", ""].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {pagedDlr.map((d) => (
-                <tr
-                  key={d.code}
-                  className="hover:bg-muted/20 transition-colors"
-                >
-                  <td className="px-4 py-3 text-xs font-medium text-foreground">
-                    {d.name}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-mono text-muted-foreground">
-                    {d.code}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    {d.region}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${d.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}
-                    >
-                      {d.active ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button className="text-xs text-primary hover:underline">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <PaginationControl
-            page={dlrPage}
-            total={DEALERS_LIST.length}
-            pageSize={dlrPageSize}
-            onChange={setDlrPage}
-            onPageSizeChange={(s) => {
-              setDlrPageSize(s);
-              setDlrPage(1);
-            }}
-          />
-        </Card>
-      )}
+       
     </div>
   );
 }

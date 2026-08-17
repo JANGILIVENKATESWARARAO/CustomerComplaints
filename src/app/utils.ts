@@ -139,3 +139,11 @@ export const ALL_AGENTS = [
   "Emma Clarke",
   "David Hughes",
 ];
+
+export const SOURCE_ITEMS = [
+ "Inbound" ,
+    "Online Booking"  ,
+    "Email" ,
+   "Company Portal"  ,
+   "Telephonic System" ]
+; 

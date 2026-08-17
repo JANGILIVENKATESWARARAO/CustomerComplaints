@@ -9,12 +9,12 @@ import * as Icons from "../../services/iconService";
 
 type SortKey =
   | "id"
+  | "status"
   | "customer"
   | "subject"
   | "category"
   | "dealer"
   | "assignedTo"
-  | "status"
   | "created";
 type SortDir = "asc" | "desc";
 
@@ -31,7 +31,7 @@ export function ComplaintsScreen({
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
   const [filterAgents, setFilterAgents] = useState<string[]>([]);
-  const [sortKey, setSortKey] = useState<SortKey>("created");
+  const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
@@ -67,7 +67,7 @@ export function ComplaintsScreen({
         sortKey === "customer"
           ? a.customer.name
           : sortKey === "assignedTo"
-            ? a.assignedTo
+            ? a.assignedTo 
             : sortKey === "created"
               ? String(a.createdDays)
               : String(
@@ -78,8 +78,10 @@ export function ComplaintsScreen({
           ? b.customer.name
           : sortKey === "assignedTo"
             ? b.assignedTo
-            : sortKey === "created"
-              ? String(b.createdDays)
+            : sortKey === "status"
+            ? b.status 
+            : sortKey === "subject"
+              ? String(b.subject)
               : String(
                   (b as unknown as Record<string, unknown>)[sortKey] ?? "",
                 );
@@ -99,12 +101,12 @@ export function ComplaintsScreen({
 
   const cols: { key: SortKey; label: string; right?: boolean }[] = [
     { key: "id", label: "ID" },
+    { key: "status", label: "Status" },
     { key: "customer", label: "Customer" },
     { key: "subject", label: "Subject" },
     { key: "category", label: "Category" },
     { key: "dealer", label: "Dealer" },
     { key: "assignedTo", label: "Assigned To" },
-    { key: "status", label: "Status" },
     { key: "created", label: "Age", right: true },
   ];
 
@@ -191,6 +193,9 @@ export function ComplaintsScreen({
                   >
                     {c.id}
                   </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={c.status} />
+                  </td>
                   <td
                     className="px-4 py-3 text-xs text-foreground"
                   >
@@ -209,9 +214,6 @@ export function ComplaintsScreen({
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {c.assignedTo}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={c.status} />
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground text-right">
                     {c.createdDays}d

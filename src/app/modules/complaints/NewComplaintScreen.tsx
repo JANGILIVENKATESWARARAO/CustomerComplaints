@@ -8,7 +8,7 @@ import {
 import { toast } from "sonner";
 import type { Screen, Customer } from "../../types";
 import { CUSTOMER_DB, DEALER_AGENTS } from "../../data";
-import { ALL_CATEGORIES, ALL_AGENTS } from "../../utils";
+import { ALL_CATEGORIES, ALL_AGENTS, SOURCE_ITEMS } from "../../utils";
 import { SearchableSelect } from "../../components/ui/searchable-select";
 import * as Icons from "../../services/iconService";
 
@@ -779,13 +779,13 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
             <SearchableSelect
               value={source}
               onChange={setSource}
-              options={[
-                "Inbound",
-                "Online Booking",
-                "Email",
-                "Company Portal",
-                "Telephonic System",
-              ]}
+              options={SOURCE_ITEMS}
+						  
+								 
+						
+								 
+									
+				
               placeholder="Select source…"
             />
           </div>
