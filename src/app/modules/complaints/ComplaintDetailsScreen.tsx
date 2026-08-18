@@ -629,12 +629,12 @@ function ReopenModal({ onConfirm, onCancel }: { onConfirm: (reason: string) => v
 // ─── TimelineEntry_ ────────────────────────────────────────────────────────────
 
 function TimelineEntry_({
-  entry, isLast, onViewEmailThread, onReply, onEdit,
+  entry, isLast, onViewEmailThread, onReply, onEdit,isFirst
 }: {
   entry: TimelineEntry; isLast: boolean;
   onViewEmailThread: (id: string) => void;
   onReply: (entry: TimelineEntry) => void;
-  onEdit: (id: string, html: string, text: string) => void;
+  onEdit: (id: string, html: string, text: string) => void; isFirst :boolean;
 }) {
   const [bodyExpanded, setBodyExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -646,8 +646,9 @@ function TimelineEntry_({
     : entry.type;
   const cfg = TIMELINE_CFG[cfgKey] ?? TIMELINE_CFG.created;
   const hasBody = entry.type === "email" && entry.emailHtml;
-  const canEdit = entry.type === "note" || entry.type === "call" || entry.type === "email" || entry.type === "reopen" ||
-    (entry.type === "status" && (entry.text.startsWith("Complaint resolved") || entry.text.startsWith("Complaint closed")));
+  const canEdit = entry.type === "note" && entry.author === SSO_USER.name && isFirst ;
+   //|| entry.type === "call" || entry.type === "email" || entry.type === "reopen" ||
+   // (entry.type === "status" && (entry.text.startsWith("Complaint resolved") || entry.text.startsWith("Complaint closed")));
 
   const closedSummary = isClosedEntry ? (() => { const i = entry.text.indexOf(": "); return i >= 0 ? entry.text.slice(i + 2) : entry.text; })() : "";
   const editInitContent = isClosedEntry ? `<p>${closedSummary}</p>` : (entry.emailHtml ?? `<p>${entry.text}</p>`);
@@ -690,7 +691,7 @@ function TimelineEntry_({
       <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-4"}`}>
         <div className="flex items-center gap-2 mb-0.5 min-w-0">
           <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
-            <span className="text-xs font-semibold text-foreground flex-shrink-0">{entry.author}</span>
+            <span className="text-xs font-semibold text-foreground flex-shrink-0">{entry.author} - {isFirst}</span>
             {entry.emailSubject && <span className="text-xs text-muted-foreground truncate cursor-default" title={entry.emailSubject}>— {entry.emailSubject}</span>}
           </div>
           <div className="flex-shrink-0 flex items-center gap-1.5">
@@ -777,7 +778,7 @@ function TimelineList({
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const segments = useMemo(() => buildSegments(timeline), [timeline]);
-
+  
   useEffect(() => {
     if (timeline.length === 0) return;
     const newestId = timeline[0].id;
@@ -790,9 +791,9 @@ function TimelineList({
   return (
     <>
       {segments.map((seg, si) => {
-        const isLastSegment = si === segments.length - 1;
+        const isLastSegment = si === segments.length - 1; 
         if (seg.kind === "entry") {
-          return <TimelineEntry_ key={seg.entry.id} entry={seg.entry} isLast={isLastSegment} onViewEmailThread={onViewEmailThread} onReply={onReply} onEdit={onEdit} />;
+          return <TimelineEntry_ key={seg.entry.id} entry={seg.entry} isLast={isLastSegment} onViewEmailThread={onViewEmailThread} onReply={onReply} onEdit={onEdit} isFirst={si === 0} />;
         }
         const isOpen = expanded.has(seg.groupId);
         const toggle = () => setExpanded((prev) => {
@@ -812,7 +813,7 @@ function TimelineList({
                 <div className="w-full border border-border rounded-lg overflow-hidden">
                   {seg.entries.map((e, ei) => (
                     <div key={e.id} className={`px-4 py-3 min-w-0 overflow-hidden ${ei < seg.entries.length - 1 ? "border-b border-border" : ""}`}>
-                      <TimelineEntry_ entry={e} isLast={ei === seg.entries.length - 1} onViewEmailThread={onViewEmailThread} onReply={onReply} onEdit={onEdit} />
+                      <TimelineEntry_ entry={e} isLast={ei === seg.entries.length - 1} onViewEmailThread={onViewEmailThread} onReply={onReply} onEdit={onEdit} isFirst={ei === 0} />
                     </div>
                   ))}
                   <button onClick={toggle} className="w-full px-4 py-2 text-center text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors border-t border-border">
@@ -854,6 +855,7 @@ function TimelineList({
                         <Icons.ChevronDown size={13} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                       </div>
                     );
+                  isFirstSegment = false;
                   })()}
                 </button>
               )}
@@ -862,6 +864,7 @@ function TimelineList({
         );
       })}
     </>
+       
   );
 }
 
