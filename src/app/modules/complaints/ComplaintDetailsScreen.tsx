@@ -194,6 +194,36 @@ function RichEditor({
   placeholder?: string;
   showToolbar?: boolean;
 }) {
+  const handleResizeStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    isResizing.current = true;
+    startY.current = e.clientY;
+    startHeight.current = editorHeight;
+
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleResizeMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isResizing.current) return;
+
+    const diff = e.clientY - startY.current;
+
+    const newHeight = Math.min(
+      Math.max(startHeight.current + diff, 128),
+      500
+    );
+
+    setEditorHeight(newHeight);
+  };
+
+  const handleResizeEnd = () => {
+    isResizing.current = false;
+  };
+  const [editorHeight, setEditorHeight] = useState(128);
+  const isResizing = useRef(false);
+  const startY = useRef(0);
+  const startHeight = useRef(128);
   const [fontSizeOpen, setFontSizeOpen] = useState(false);
   const [colorOpen, setColorOpen] = useState(false);
   const [bgColorOpen, setBgColorOpen] = useState(false);
@@ -372,8 +402,73 @@ function RichEditor({
           }
         </div>
       )}
-      <div className="bg-white min-h-32 max-h-64 overflow-y-auto px-4 py-3 [&_.tiptap]:outline-none [&_.tiptap]:min-h-28 [&_.tiptap]:text-sm [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none [&_.tiptap_p.is-editor-empty:first-child::before]:float-left [&_.tiptap_blockquote]:border-l-4 [&_.tiptap_blockquote]:border-primary/30 [&_.tiptap_blockquote]:pl-4 [&_.tiptap_blockquote]:text-muted-foreground [&_.tiptap_blockquote]:italic [&_.tiptap_blockquote]:my-2 [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-5 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-5 [&_.tiptap_strong]:font-bold [&_.tiptap_em]:italic [&_.tiptap_u]:underline [&_.tiptap_s]:line-through [&_.tiptap_a]:text-primary [&_.tiptap_a]:underline [&_.tiptap_table]:w-full [&_.tiptap_table]:border-collapse [&_.tiptap_table]:my-2 [&_.tiptap_td]:border [&_.tiptap_td]:border-border [&_.tiptap_td]:px-2 [&_.tiptap_td]:py-1.5 [&_.tiptap_td]:text-xs [&_.tiptap_th]:border [&_.tiptap_th]:border-border [&_.tiptap_th]:px-2 [&_.tiptap_th]:py-1.5 [&_.tiptap_th]:text-xs [&_.tiptap_th]:bg-muted [&_.tiptap_th]:font-semibold">
+      {/* <div className="bg-white min-h-32 max-h-64 overflow-y-auto px-4 py-3 [&_.tiptap]:outline-none [&_.tiptap]:min-h-28 [&_.tiptap]:text-sm [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none [&_.tiptap_p.is-editor-empty:first-child::before]:float-left [&_.tiptap_blockquote]:border-l-4 [&_.tiptap_blockquote]:border-primary/30 [&_.tiptap_blockquote]:pl-4 [&_.tiptap_blockquote]:text-muted-foreground [&_.tiptap_blockquote]:italic [&_.tiptap_blockquote]:my-2 [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-5 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-5 [&_.tiptap_strong]:font-bold [&_.tiptap_em]:italic [&_.tiptap_u]:underline [&_.tiptap_s]:line-through [&_.tiptap_a]:text-primary [&_.tiptap_a]:underline [&_.tiptap_table]:w-full [&_.tiptap_table]:border-collapse [&_.tiptap_table]:my-2 [&_.tiptap_td]:border [&_.tiptap_td]:border-border [&_.tiptap_td]:px-2 [&_.tiptap_td]:py-1.5 [&_.tiptap_td]:text-xs [&_.tiptap_th]:border [&_.tiptap_th]:border-border [&_.tiptap_th]:px-2 [&_.tiptap_th]:py-1.5 [&_.tiptap_th]:text-xs [&_.tiptap_th]:bg-muted [&_.tiptap_th]:font-semibold">
         <EditorContent editor={editor} />
+      </div> */}
+      <div
+        className="relative bg-white overflow-auto px-4 py-3"
+        style={{ height: `${editorHeight}px` }}
+      >
+        <div
+          className="h-full overflow-y-auto
+      [&_.tiptap]:outline-none
+      [&_.tiptap]:min-h-28
+      [&_.tiptap]:text-sm
+      [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
+      [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground
+      [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none
+      [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
+      [&_.tiptap_blockquote]:border-l-4
+      [&_.tiptap_blockquote]:border-primary/30
+      [&_.tiptap_blockquote]:pl-4
+      [&_.tiptap_blockquote]:text-muted-foreground
+      [&_.tiptap_blockquote]:italic
+      [&_.tiptap_blockquote]:my-2
+      [&_.tiptap_ul]:list-disc
+      [&_.tiptap_ul]:pl-5
+      [&_.tiptap_ol]:list-decimal
+      [&_.tiptap_ol]:pl-5
+      [&_.tiptap_strong]:font-bold
+      [&_.tiptap_em]:italic
+      [&_.tiptap_u]:underline
+      [&_.tiptap_s]:line-through
+      [&_.tiptap_a]:text-primary
+      [&_.tiptap_a]:underline
+      [&_.tiptap_table]:w-full
+      [&_.tiptap_table]:border-collapse
+      [&_.tiptap_table]:my-2
+      [&_.tiptap_td]:border
+      [&_.tiptap_td]:border-border
+      [&_.tiptap_td]:px-2
+      [&_.tiptap_td]:py-1.5
+      [&_.tiptap_td]:text-xs
+      [&_.tiptap_th]:border
+      [&_.tiptap_th]:border-border
+      [&_.tiptap_th]:px-2
+      [&_.tiptap_th]:py-1.5
+      [&_.tiptap_th]:text-xs
+      [&_.tiptap_th]:bg-muted
+      [&_.tiptap_th]:font-semibold"
+        >
+          <EditorContent editor={editor} />
+        </div>
+
+        {/* Custom resize handle */}
+        <div
+          onPointerDown={handleResizeStart}
+          onPointerMove={handleResizeMove}
+          onPointerUp={handleResizeEnd}
+          onPointerCancel={handleResizeEnd}
+          className="absolute bottom-1 left-1/2 -translate-x-1/2
+      w-8 h-2
+      rounded-full
+      bg-gray-300
+      hover:bg-gray-400
+      cursor-ns-resize
+      select-none
+      touch-none
+      z-10"
+        />
       </div>
     </>
   );
