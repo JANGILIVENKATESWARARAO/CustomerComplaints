@@ -612,6 +612,35 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
     });
   }, []);
 
+useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing.current) return;
+
+    const diff = e.clientY - startY.current;
+
+    const newHeight = Math.min(
+      Math.max(startHeight.current + diff, 80),
+      500
+    );
+
+    setDescriptionHeight(newHeight);
+  };
+
+  const handleMouseUp = () => {
+    isResizing.current = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  };
+
+  document.addEventListener("mousemove", handleMouseMove);
+  document.addEventListener("mouseup", handleMouseUp);
+
+  return () => {
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  };
+}, []);
+
   const [dealer, setDealer] = useState("");
   const [assignedTo, setAssignedTo] = useState(SSO_USER.name);
   const [source, setSource] = useState("");
@@ -623,9 +652,16 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
   const [lastName, setLastName] = useState("");
   const [vehicleReg, setVehicleReg] = useState("");
 
+const [descriptionHeight, setDescriptionHeight] = useState(120);
+const descriptionRef = useRef<HTMLTextAreaElement>(null);
+const isResizing = useRef(false);
+const startY = useRef(0);
+const startHeight = useRef(0);
+
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionFocused, setDescriptionFocused] = useState(false); 
   const [priority, setPriority] = useState("");
 
   const [submitted, setSubmitted] = useState(false);
@@ -657,6 +693,17 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
       new Set([SSO_USER.name, ...(DEALER_AGENTS[dealer] ?? ALL_AGENTS)]),
     )
   : ALL_AGENTS;
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  isResizing.current = true;
+  startY.current = e.clientY;
+  startHeight.current = descriptionHeight;
+
+  document.body.style.cursor = "ns-resize";
+  document.body.style.userSelect = "none";
+};
 
   const handleSubmit = () => {
     const e: Record<string, boolean> = {};
@@ -910,20 +957,47 @@ export function NewComplaintScreen({ onNavigate }: NewComplaintScreenProps) {
               />
             </div>
           </div>
-          <div>
-            <RequiredLabel>Description</RequiredLabel>
-            <textarea
-              maxLength={2000}
-              rows={5}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the complaint in detail…"
-              className={`w-full px-3 py-2 text-xs border rounded-lg bg-card resize-none focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 ${errors.desc ? "border-red-400" : "border-border"}`}
-            />
-            <div className="flex justify-end mt-1">
-              <CharCounter current={description.length} max={2000} />
-            </div>
-          </div>
+  <div>
+  <RequiredLabel>Description</RequiredLabel>
+
+  <div
+    className={`relative rounded-lg bg-card border ${
+      errors.desc
+        ? "border-red-400"
+        : "border-border focus-within:border-primary"
+    }`}
+  >
+   <textarea
+  ref={descriptionRef}
+  maxLength={2000}
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+  onFocus={() => setDescriptionFocused(true)}
+  onBlur={() => setDescriptionFocused(false)}
+  placeholder="Describe the complaint in detail…"
+  style={{
+    height: `${descriptionHeight}px`,
+    resize: "none",
+    caretColor: descriptionFocused ? "auto" : "transparent",
+  }}
+  className="block w-full border-0 outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0 bg-transparent px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground"
+/>
+    {/* Custom resize handle */}
+    <div
+      onMouseDown={handleResizeStart}
+      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-3 cursor-ns-resize flex items-center justify-center select-none"
+    >
+      <span className="w-6 h-1 rounded-full bg-muted-foreground/30" />
+    </div>
+  </div>
+
+  <div className="flex justify-end mt-1">
+    <CharCounter
+      current={description.length}
+      max={2000}
+    />
+  </div>
+</div>
           <div className="flex justify-end pt-2">
             <button
               onClick={handleSubmit}

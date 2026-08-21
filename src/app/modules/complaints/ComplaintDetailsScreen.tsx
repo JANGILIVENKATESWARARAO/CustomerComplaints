@@ -205,6 +205,38 @@ function RichEditor({
   const liRef = useRef<HTMLDivElement>(null);
   const tbRef = useRef<HTMLDivElement>(null);
 
+  const handleResizeStart = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault();
+ 
+    isResizing.current = true;
+    startY.current = e.clientY;
+    startHeight.current = editorHeight;
+ 
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+ 
+  const handleResizeMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isResizing.current) return;
+ 
+    const diff = e.clientY - startY.current;
+ 
+    const newHeight = Math.min(
+      Math.max(startHeight.current + diff, 128),
+      500
+    );
+ 
+    setEditorHeight(newHeight);
+  };
+ 
+  const handleResizeEnd = () => {
+    isResizing.current = false;
+  };
+  const [editorHeight, setEditorHeight] = useState(128);
+  const isResizing = useRef(false);
+  const startY = useRef(0);
+  const startHeight = useRef(128);
+ 
+
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (!fsRef.current?.contains(e.target as Node)) setFontSizeOpen(false);
@@ -364,9 +396,76 @@ function RichEditor({
         {sep()}
         {btn("Clear formatting", <Icons.RemoveFormatting size={12} />, () => editor.chain().focus().clearNodes().unsetAllMarks().run())}
       </div>
-      <div className="bg-white min-h-32 max-h-64 overflow-y-auto px-4 py-3 [&_.tiptap]:outline-none [&_.tiptap]:min-h-28 [&_.tiptap]:text-sm [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none [&_.tiptap_p.is-editor-empty:first-child::before]:float-left [&_.tiptap_blockquote]:border-l-4 [&_.tiptap_blockquote]:border-primary/30 [&_.tiptap_blockquote]:pl-4 [&_.tiptap_blockquote]:text-muted-foreground [&_.tiptap_blockquote]:italic [&_.tiptap_blockquote]:my-2 [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-5 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-5 [&_.tiptap_strong]:font-bold [&_.tiptap_em]:italic [&_.tiptap_u]:underline [&_.tiptap_s]:line-through [&_.tiptap_a]:text-primary [&_.tiptap_a]:underline [&_.tiptap_table]:w-full [&_.tiptap_table]:border-collapse [&_.tiptap_table]:my-2 [&_.tiptap_td]:border [&_.tiptap_td]:border-border [&_.tiptap_td]:px-2 [&_.tiptap_td]:py-1.5 [&_.tiptap_td]:text-xs [&_.tiptap_th]:border [&_.tiptap_th]:border-border [&_.tiptap_th]:px-2 [&_.tiptap_th]:py-1.5 [&_.tiptap_th]:text-xs [&_.tiptap_th]:bg-muted [&_.tiptap_th]:font-semibold">
+      {/* <div className="bg-white min-h-32 max-h-64 overflow-y-auto px-4 py-3 [&_.tiptap]:outline-none [&_.tiptap]:min-h-28 [&_.tiptap]:text-sm [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none [&_.tiptap_p.is-editor-empty:first-child::before]:float-left [&_.tiptap_blockquote]:border-l-4 [&_.tiptap_blockquote]:border-primary/30 [&_.tiptap_blockquote]:pl-4 [&_.tiptap_blockquote]:text-muted-foreground [&_.tiptap_blockquote]:italic [&_.tiptap_blockquote]:my-2 [&_.tiptap_ul]:list-disc [&_.tiptap_ul]:pl-5 [&_.tiptap_ol]:list-decimal [&_.tiptap_ol]:pl-5 [&_.tiptap_strong]:font-bold [&_.tiptap_em]:italic [&_.tiptap_u]:underline [&_.tiptap_s]:line-through [&_.tiptap_a]:text-primary [&_.tiptap_a]:underline [&_.tiptap_table]:w-full [&_.tiptap_table]:border-collapse [&_.tiptap_table]:my-2 [&_.tiptap_td]:border [&_.tiptap_td]:border-border [&_.tiptap_td]:px-2 [&_.tiptap_td]:py-1.5 [&_.tiptap_td]:text-xs [&_.tiptap_th]:border [&_.tiptap_th]:border-border [&_.tiptap_th]:px-2 [&_.tiptap_th]:py-1.5 [&_.tiptap_th]:text-xs [&_.tiptap_th]:bg-muted [&_.tiptap_th]:font-semibold">
         <EditorContent editor={editor} />
+      </div> */}
+      <div
+        className="relative bg-white overflow-auto px-4 py-3"
+        style={{ height: `${editorHeight}px` }}
+      >
+        <div
+          className="h-full overflow-y-auto
+      [&_.tiptap]:outline-none
+      [&_.tiptap]:min-h-28
+      [&_.tiptap]:text-sm
+      [&_.tiptap_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)]
+      [&_.tiptap_p.is-editor-empty:first-child::before]:text-muted-foreground
+      [&_.tiptap_p.is-editor-empty:first-child::before]:pointer-events-none
+      [&_.tiptap_p.is-editor-empty:first-child::before]:float-left
+      [&_.tiptap_blockquote]:border-l-4
+      [&_.tiptap_blockquote]:border-primary/30
+      [&_.tiptap_blockquote]:pl-4
+      [&_.tiptap_blockquote]:text-muted-foreground
+      [&_.tiptap_blockquote]:italic
+      [&_.tiptap_blockquote]:my-2
+      [&_.tiptap_ul]:list-disc
+      [&_.tiptap_ul]:pl-5
+      [&_.tiptap_ol]:list-decimal
+      [&_.tiptap_ol]:pl-5
+      [&_.tiptap_strong]:font-bold
+      [&_.tiptap_em]:italic
+      [&_.tiptap_u]:underline
+      [&_.tiptap_s]:line-through
+      [&_.tiptap_a]:text-primary
+      [&_.tiptap_a]:underline
+      [&_.tiptap_table]:w-full
+      [&_.tiptap_table]:border-collapse
+      [&_.tiptap_table]:my-2
+      [&_.tiptap_td]:border
+      [&_.tiptap_td]:border-border
+      [&_.tiptap_td]:px-2
+      [&_.tiptap_td]:py-1.5
+      [&_.tiptap_td]:text-xs
+      [&_.tiptap_th]:border
+      [&_.tiptap_th]:border-border
+      [&_.tiptap_th]:px-2
+      [&_.tiptap_th]:py-1.5
+      [&_.tiptap_th]:text-xs
+      [&_.tiptap_th]:bg-muted
+      [&_.tiptap_th]:font-semibold"
+        >
+          <EditorContent editor={editor} />
+        </div>
+ 
+        {/* Custom resize handle */}
+        <div
+          onPointerDown={handleResizeStart}
+          onPointerMove={handleResizeMove}
+          onPointerUp={handleResizeEnd}
+          onPointerCancel={handleResizeEnd}
+          className="absolute bottom-1 left-1/2 -translate-x-1/2
+      w-8 h-2
+      rounded-full
+      bg-gray-300
+      hover:bg-gray-400
+      cursor-ns-resize
+      select-none
+      touch-none
+      z-10"
+        />
       </div>
+      
+      
     </>
   );
 }
@@ -885,6 +984,7 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
   const [callDir, setCallDir] = useState("Inbound");
   const [descExpanded, setDescExpanded] = useState(false);
   const [replyToEntry, setReplyToEntry] = useState<TimelineEntry | null>(null);
+  
 
   function addEntry(partial: Omit<TimelineEntry, "id" | "timestamp">) {
     setTimeline((prev) => [{ id: String(Date.now()), timestamp: nowStamp(), ...partial }, ...prev]);
@@ -935,6 +1035,62 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
     setShowClose(false);
     toast.success("Complaint closed.");
   }
+  function TimelineFilterBar({ timeline, activeFilters, onFilter }: {
+  timeline: TimelineEntry[];
+  activeFilters: string[];
+  onFilter: (fs: string[]) => void;
+}) {
+  const counts = useMemo(() => ({
+    email: timeline.filter(e => e.type === "email").length,
+    call:  timeline.filter(e => e.type === "call").length,
+    note:  timeline.filter(e => e.type === "note").length,
+    other: timeline.filter(e => !["note","call","email"].includes(e.type)).length,
+  }), [timeline]);
+
+  const allActive = activeFilters.length === 0;
+
+  const toggleFilter = (key: string) => {
+    if (activeFilters.includes(key)) {
+      const next = activeFilters.filter(f => f !== key);
+      onFilter(next);
+    } else {
+      onFilter([...activeFilters, key]);
+    }
+  };
+
+  const typedFilters: { key: string; label: string; icon: ReactNode; count: number }[] = [
+    { key: "email", label: "Emails", icon: <Icons.Mail size={11} />,          count: counts.email },
+    { key: "call",  label: "Calls",  icon: <Icons.Phone size={11} />,         count: counts.call  },
+    { key: "note",  label: "Notes",  icon: <Icons.MessageSquare size={11} />, count: counts.note  },
+    { key: "other", label: "Other",  icon: <Icons.Activity size={11} />,      count: counts.other },
+  ].filter(f => f.count > 0);
+
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Activity &amp; Communication Timeline</h3>
+      <div className="flex items-center gap-1">
+        <button onClick={() => onFilter([])}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors
+            ${allActive ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+            All
+          <span className={`text-[10px] ${allActive ? "text-white/80" : "text-muted-foreground/70"}`}>({timeline.length})</span>
+        </button>
+        {typedFilters.map(f => {
+          const active = activeFilters.includes(f.key);
+          return (
+            <button key={f.key} onClick={() => toggleFilter(f.key)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors
+                ${active ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+              {f.icon}{f.label}
+              <span className={`text-[10px] ${active ? "text-white/80" : "text-muted-foreground/70"}`}>({f.count})</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
   const isClosed = status === "Closed";
   const isResolved = status === "Resolved";
