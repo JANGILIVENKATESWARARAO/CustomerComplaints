@@ -975,6 +975,7 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
   const base = COMPLAINTS.find((c) => c.id === complaintId) ?? COMPLAINTS[0];
   const [status, setStatus] = useState<Status>(base.status);
   const [timeline, setTimeline] = useState<TimelineEntry[]>([...base.timeline]);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [action, setAction] = useState<"note" | "email" | "call" | null>(null);
   const [showResolve, setShowResolve] = useState(false);
   const [showClose, setShowClose] = useState(false);
@@ -984,6 +985,35 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
   const [callDir, setCallDir] = useState("Inbound");
   const [descExpanded, setDescExpanded] = useState(false);
   const [replyToEntry, setReplyToEntry] = useState<TimelineEntry | null>(null);
+
+  const filteredTimeline = useMemo(() => {
+  if (activeFilters.length === 0) {
+    return timeline;
+  }
+
+  return timeline.filter((entry) => {
+    return activeFilters.some((filter) => {
+
+      if (filter === "email") {
+        return entry.type === "email";
+      }
+
+      if (filter === "call") {
+        return entry.type === "call";
+      }
+
+      if (filter === "note") {
+        return entry.type === "note";
+      }
+
+      if (filter === "other") {
+        return !["note", "call", "email"].includes(entry.type);
+      }
+
+      return false;
+    });
+  });
+}, [timeline, activeFilters]);
   
 
   function addEntry(partial: Omit<TimelineEntry, "id" | "timestamp">) {
@@ -1035,54 +1065,129 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
     setShowClose(false);
     toast.success("Complaint closed.");
   }
-  function TimelineFilterBar({ timeline, activeFilters, onFilter }: {
+ function TimelineFilterBar({
+  timeline,
+  activeFilters,
+  onFilter,
+}: {
   timeline: TimelineEntry[];
   activeFilters: string[];
   onFilter: (fs: string[]) => void;
 }) {
-  const counts = useMemo(() => ({
-    email: timeline.filter(e => e.type === "email").length,
-    call:  timeline.filter(e => e.type === "call").length,
-    note:  timeline.filter(e => e.type === "note").length,
-    other: timeline.filter(e => !["note","call","email"].includes(e.type)).length,
-  }), [timeline]);
+   const counts = useMemo(() => ({
+     email: timeline.filter(
+       e => e.type === "email"
+     ).length,
+
+     call: timeline.filter(
+       e => e.type === "call"
+     ).length,
+
+     note: timeline.filter(
+       e => e.type === "note"
+     ).length,
+
+     other: timeline.filter(
+       e => !["note", "call", "email"].includes(e.type)
+     ).length,
+
+   }), [timeline]);
 
   const allActive = activeFilters.length === 0;
 
   const toggleFilter = (key: string) => {
     if (activeFilters.includes(key)) {
-      const next = activeFilters.filter(f => f !== key);
-      onFilter(next);
+      onFilter(activeFilters.filter((f) => f !== key));
     } else {
       onFilter([...activeFilters, key]);
     }
   };
 
-  const typedFilters: { key: string; label: string; icon: ReactNode; count: number }[] = [
-    { key: "email", label: "Emails", icon: <Icons.Mail size={11} />,          count: counts.email },
-    { key: "call",  label: "Calls",  icon: <Icons.Phone size={11} />,         count: counts.call  },
-    { key: "note",  label: "Notes",  icon: <Icons.MessageSquare size={11} />, count: counts.note  },
-    { key: "other", label: "Other",  icon: <Icons.Activity size={11} />,      count: counts.other },
-  ].filter(f => f.count > 0);
+  const typedFilters = [
+    {
+      key: "email",
+      label: "Emails",
+      icon: <Icons.Mail size={11} />,
+      count: counts.email,
+    },
+    {
+      key: "call",
+      label: "Calls",
+      icon: <Icons.Phone size={11} />,
+      count: counts.call,
+    },
+    {
+      key: "note",
+      label: "Notes",
+      icon: <Icons.MessageSquare size={11} />,
+      count: counts.note,
+    },
+    {
+      key: "other",
+      label: "Others",
+      icon: <Icons.Activity size={11} />,
+      count: counts.other,
+    },
+  ].filter((f) => f.count > 0);
 
   return (
     <div className="flex items-center justify-between mb-4">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Activity &amp; Communication Timeline</h3>
+      {/* Heading */}
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        Activity & Communication Timeline
+      </h3>
+
+      {/* Filters */}
       <div className="flex items-center gap-1">
-        <button onClick={() => onFilter([])}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors
-            ${allActive ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-            All
-          <span className={`text-[10px] ${allActive ? "text-white/80" : "text-muted-foreground/70"}`}>({timeline.length})</span>
+
+        {/* ALL */}
+        <button
+          onClick={() => onFilter([])}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+            allActive
+              ? "bg-primary text-white"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          All
+          <span
+            className={`text-[10px] ${
+              allActive
+                ? "text-white/80"
+                : "text-muted-foreground/70"
+            }`}
+          >
+            ({timeline.length})
+          </span>
         </button>
-        {typedFilters.map(f => {
-          const active = activeFilters.includes(f.key);
+
+        {/* EMAILS / CALLS / NOTES / OTHERS */}
+        {typedFilters.map((filter) => {
+          const active = activeFilters.includes(filter.key);
+
           return (
-            <button key={f.key} onClick={() => toggleFilter(f.key)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors
-                ${active ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-              {f.icon}{f.label}
-              <span className={`text-[10px] ${active ? "text-white/80" : "text-muted-foreground/70"}`}>({f.count})</span>
+            <button
+              key={filter.key}
+              onClick={() => toggleFilter(filter.key)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                active
+                  ? "bg-primary text-white"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {filter.icon}
+
+              {filter.label}
+
+              <span
+                className={`text-[10px] ${
+                  active
+                    ? "text-white/80"
+                    : "text-muted-foreground/70"
+                }`}
+              >
+                ({filter.count})
+              </span>
             </button>
           );
         })}
@@ -1090,7 +1195,6 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
     </div>
   );
 }
-
 
   const isClosed = status === "Closed";
   const isResolved = status === "Resolved";
@@ -1185,8 +1289,23 @@ export function ComplaintDetailsScreen({ complaintId, onNavigate }: ComplaintDet
         </div>
 
         <Card className="p-5">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Activity &amp; Communication Timeline</h3>
-          <TimelineList timeline={timeline} onViewEmailThread={setShowEmailThread} onReply={(entry) => { setReplyToEntry(entry); setAction("email"); }} onEdit={handleEditEntry} />
+
+          <TimelineFilterBar
+            timeline={timeline}
+            activeFilters={activeFilters}
+            onFilter={setActiveFilters}
+          />
+
+          <TimelineList
+            timeline={filteredTimeline}
+            onViewEmailThread={setShowEmailThread}
+            onReply={(entry) => {
+              setReplyToEntry(entry);
+              setAction("email");
+            }}
+            onEdit={handleEditEntry}
+          />
+
         </Card>
       </div>
     </>
